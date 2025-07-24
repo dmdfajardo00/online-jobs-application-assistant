@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upwork AI Application Assistant</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons for UI elements -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Mermaid.js for rendering diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <style>
+        /* Custom styles to complement Tailwind */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F9FAFB; /* neutral.gray50 */
+        }
+        /* Style for the rendered mermaid diagram */
+        .mermaid svg {
+            width: 100%;
+            height: auto;
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F3F4F6; /* neutral.gray100 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D1D5DB; /* neutral.gray300 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9CA3AF; /* neutral.gray400 */
+        }
+        /* Hide the initial output content until generation */
+        #output-content {
+            display: none;
+        }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <div class="min-h-screen p-4 sm:p-6 lg:p-8">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header Section -->
+            <header class="mb-8 text-center">
+                <h1 class="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900">Upwork AI Application Assistant</h1>
+                <p class="mt-2 text-base sm:text-lg text-gray-600">Generate professional application assets from a job description in seconds.</p>
+            </header>
+
+            <!-- Main Content: Two-column layout -->
+            <main class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- Left Column: Input Panel -->
+                <div class="bg-white p-6 rounded-xl shadow border border-gray-200">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">Upwork Job Description</h2>
+                    <textarea id="job-description" class="w-full h-96 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 resize-y" placeholder="Paste the full Upwork job description here..."></textarea>
+                    <button id="generate-btn" class="mt-4 w-full bg-indigo-500 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 flex items-center justify-center gap-2">
+                        <i class="ph ph-magic-wand text-xl"></i>
+                        <span>Generate Application Assets</span>
+                    </button>
+                </div>
+
+                <!-- Right Column: Output Panel -->
+                <div class="bg-white p-6 rounded-xl shadow border border-gray-200 flex flex-col overflow-hidden h-[32rem]">
+                    <!-- Placeholder shown before generation -->
+                    <div id="output-placeholder" class="flex-1 flex items-center justify-center flex-col text-center text-gray-500">
+                         <i class="ph ph-files text-6xl text-gray-400 mb-4"></i>
+                         <h3 class="text-lg font-semibold text-gray-700">Your generated assets will appear here.</h3>
+                         <p class="text-sm">Paste a job description and click generate.</p>
+                    </div>
+
+                    <!-- Content shown after generation -->
+                    <div id="output-content" class="flex-1 flex flex-col min-h-0">
+                        <!-- Tab Navigation -->
+                        <div class="bg-gray-100 p-1 rounded-xl flex items-center space-x-1 mb-4">
+                            <button class="tab-btn flex-1 py-2 px-1 text-sm font-medium rounded-lg" data-tab="application-copy">Application Copy</button>
+                            <button class="tab-btn flex-1 py-2 px-1 text-sm font-medium rounded-lg" data-tab="proposal-doc">Proposal Doc</button>
+                            <button class="tab-btn flex-1 py-2 px-1 text-sm font-medium rounded-lg" data-tab="workflow-diagram">Workflow Diagram</button>
+                        </div>
+
+                        <!-- Tab Content Area -->
+                        <div class="flex-1 overflow-hidden min-h-0">
+                            <!-- Application Copy Tab -->
+                            <div id="application-copy" class="tab-content h-full flex flex-col">
+                                <div class="bg-gray-50 rounded-lg border border-gray-200 flex-1 grid grid-rows-[auto_1fr] overflow-hidden">
+                                    <div class="p-3 border-b border-gray-200 flex justify-between items-center">
+                                        <h4 class="font-semibold text-gray-700 text-sm">Generated Application Copy</h4>
+                                        <button class="copy-btn bg-white text-gray-500 hover:bg-gray-100 hover:text-indigo-500 p-1.5 rounded-md transition border border-gray-200" data-copy-target="copy-text-content" title="Copy Text">
+                                            <i class="ph ph-clipboard-text text-lg"></i>
+                                        </button>
+                                    </div>
+                                    <div class="p-4 overflow-y-auto">
+                                        <pre id="copy-text-content" class="text-sm whitespace-pre-wrap leading-relaxed text-gray-700"></pre>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Proposal Doc Tab -->
+                            <div id="proposal-doc" class="tab-content h-full hidden">
+                                <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center flex flex-col items-center justify-center h-full">
+                                    <i class="ph ph-file-doc text-5xl text-indigo-500 mb-3"></i>
+                                    <h3 id="proposal-title" class="text-lg font-semibold text-gray-800 mb-2"></h3>
+                                    <p class="text-sm text-gray-500 mb-6 max-w-sm">A professional proposal document has been created and is ready to be shared.</p>
+                                    <div class="flex flex-col sm:flex-row gap-3 w-full max-w-md">
+                                        <a id="proposal-link" href="#" target="_blank" class="flex-1 text-center bg-indigo-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-600 transition flex items-center justify-center gap-2">
+                                            <i class="ph ph-arrow-square-out"></i>
+                                            <span>Open Google Doc</span>
+                                        </a>
+                                        <button class="copy-btn flex-1 sm:flex-initial bg-white border border-gray-300 text-gray-600 font-semibold py-2 px-4 rounded-lg hover:bg-gray-100 transition flex items-center justify-center gap-2" data-copy-target="proposal-link-text" title="Copy Link">
+                                            <i class="ph ph-link"></i>
+                                            <span>Copy Link</span>
+                                        </button>
+                                        <span id="proposal-link-text" class="hidden"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Workflow Diagram Tab -->
+                            <div id="workflow-diagram" class="tab-content h-full hidden flex flex-col">
+                                 <div class="bg-gray-50 rounded-lg border border-gray-200 flex-1 grid grid-rows-[auto_1fr] overflow-hidden">
+                                    <div class="p-3 border-b border-gray-200 flex justify-between items-center">
+                                        <h4 class="font-semibold text-gray-700 text-sm">Generated Workflow Diagram</h4>
+                                        <button class="copy-btn bg-white text-gray-500 hover:bg-gray-100 hover:text-indigo-500 p-1.5 rounded-md transition border border-gray-200" data-copy-target="mermaid-code-content" title="Copy Mermaid Code">
+                                            <i class="ph ph-code"></i>
+                                        </button>
+                                    </div>
+                                    <div class="p-4 overflow-y-auto">
+                                        <div id="mermaid-diagram-container" class="mermaid bg-white p-4 rounded-md"></div>
+                                        <details class="mt-4 text-sm">
+                                            <summary class="cursor-pointer font-medium text-gray-600 hover:text-indigo-500">View Raw Mermaid Code</summary>
+                                            <pre id="mermaid-code-content" class="mt-2 p-3 bg-gray-100 rounded-md text-xs whitespace-pre-wrap overflow-x-auto"></pre>
+                                        </details>
+                                    </div>
+                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- DOM Element References ---
+            const generateBtn = document.getElementById('generate-btn');
+            const jobDescriptionInput = document.getElementById('job-description');
+            const outputPlaceholder = document.getElementById('output-placeholder');
+            const outputContent = document.getElementById('output-content');
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const copyButtons = document.querySelectorAll('.copy-btn');
+
+            // --- Mock Data ---
+            const mockData = {
+                applicationCopy: `Hi, I'm an AI Automation Specialist and I see you're looking for an expert to streamline your receipt and invoice extraction process. This is exactly what I do all the time, and I'm confident I'm the right fit for this project.
+
+In fact, I've already created a detailed proposal and a workflow diagram to show you how I'd build your system. You can view the full proposal here:
+$$$
+
+About Me:
+I'm an AI automation freelancer that builds out robust systems (CRMs, project management, no-code integrations). Some notable projects include:
+- Built an end-to-end project management system for a $1M/year creative agency.
+- Developed an automated content generation system that grew an SEO agency from $10k to $92k MRR.
+- Created a monday.com CRM for a recruiting company doing $1M/year.
+
+Further Details on My Approach:
+1.  **Discovery & Scoping:** We'll begin with a detailed session to map out every step of your current process. I want to understand the nuances, the edge cases, and the exact pain points you're experiencing. This ensures the automated solution is a perfect fit.
+2.  **System Architecture:** Based on our discovery, I will design the full automation architecture. This includes choosing the right tools (like Make.com, Zapier, or custom scripts), setting up the necessary integrations (Gmail, Google Drive, your accounting software), and defining the data flow.
+3.  **Development & Implementation:** I will build the automation, providing you with regular updates. This is an iterative process, and I welcome feedback at every stage to ensure the final product meets your expectations.
+4.  **Testing & QA:** Before going live, the system will be rigorously tested with various invoice and receipt formats to ensure accuracy and reliability. We'll handle different file types, layouts, and potential OCR errors.
+5.  **Deployment & Training:** Once approved, I will deploy the system into your live environment. I will also provide a walkthrough or a short video tutorial for you and your team on how it works and how to monitor it.
+6.  **Ongoing Support:** I offer ongoing support retainers to ensure the system continues to run smoothly and can be adapted to any future changes in your business processes.
+
+I'm happy to discuss this further. Just respond to this proposal, and we can connect.
+
+Thank you!`,
+                proposalTitle: "Gmail to Google Drive: Receipt & Invoice Automation",
+                proposalLink: "https://docs.google.com/document/d/example12345/edit",
+                mermaidCode: `graph TD
+    A[Start: Email with Invoice/Receipt Arrives] --> B{Filter Emails by Sender/Subject};
+    B --> C[Extract PDF/Image Attachment];
+    C --> D[Use OCR to Read Attachment Data];
+    D --> E{Extracted Data};
+    E --> F[Customer Name];
+    E --> G[Invoice Number];
+    E --> H[Total Amount];
+    E --> I[Date];
+    I --> J[Rename File: YYYY-MM-DD_Customer_Invoice.pdf];
+    J --> K[Save Renamed File to Google Drive];
+    K --> L[Log Entry in Google Sheet];
+    L --> M[End: Notify via Slack/Email];`
+            };
+
+            // --- Event Listeners ---
+
+            generateBtn.addEventListener('click', () => {
+                if (jobDescriptionInput.value.trim() === "") {
+                    // Replace alert with a more subtle notification if desired
+                    jobDescriptionInput.focus();
+                    jobDescriptionInput.classList.add('border-red-500', 'ring-red-500');
+                    setTimeout(() => {
+                        jobDescriptionInput.classList.remove('border-red-500', 'ring-red-500');
+                    }, 2000);
+                    return;
+                }
+                setLoadingState(true);
+                setTimeout(() => {
+                    populateOutput(mockData);
+                    setLoadingState(false);
+                }, 2500);
+            });
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetTab = button.dataset.tab;
+                    
+                    // Update button styles
+                    tabButtons.forEach(btn => {
+                        btn.classList.remove('bg-white', 'text-gray-900', 'shadow');
+                        btn.classList.add('text-gray-500', 'hover:text-gray-700');
+                    });
+                    button.classList.add('bg-white', 'text-gray-900', 'shadow');
+                    button.classList.remove('text-gray-500', 'hover:text-gray-700');
+
+                    // Show/hide content
+                    tabContents.forEach(content => {
+                        content.classList.toggle('hidden', content.id !== targetTab);
+                    });
+                });
+            });
+            
+            copyButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.dataset.copyTarget;
+                    const contentElement = document.getElementById(targetId);
+                    const textToCopy = contentElement.tagName === 'A' ? contentElement.href : contentElement.innerText;
+
+                    const tempTextArea = document.createElement('textarea');
+                    tempTextArea.value = textToCopy;
+                    document.body.appendChild(tempTextArea);
+                    tempTextArea.select();
+                    try {
+                        document.execCommand('copy');
+                        const originalIcon = button.innerHTML;
+                        button.innerHTML = `<i class="ph ph-check-circle text-lg text-green-500"></i>`;
+                        setTimeout(() => { button.innerHTML = originalIcon; }, 2000);
+                    } catch (err) {
+                        console.error('Failed to copy: ', err);
+                    }
+                    document.body.removeChild(tempTextArea);
+                });
+            });
+
+            // --- Helper Functions ---
+
+            function setLoadingState(isLoading) {
+                if (isLoading) {
+                    generateBtn.disabled = true;
+                    generateBtn.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Generating...</span>`;
+                    outputPlaceholder.innerHTML = `<div class="flex flex-col items-center justify-center"><svg class="animate-spin h-10 w-10 text-indigo-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><h3 class="text-lg font-semibold text-gray-700">Generating Assets</h3><p class="text-sm text-gray-500">The AI is working its magic. This may take a moment.</p></div>`;
+                    outputContent.style.display = 'none';
+                    outputPlaceholder.style.display = 'flex';
+                } else {
+                    generateBtn.disabled = false;
+                    generateBtn.innerHTML = `<i class="ph ph-magic-wand text-xl"></i><span>Generate Application Assets</span>`;
+                }
+            }
+
+            function populateOutput(data) {
+                outputPlaceholder.style.display = 'none';
+                outputContent.style.display = 'flex';
+
+                const finalApplicationCopy = data.applicationCopy.replace('$$$', `<a href="${data.proposalLink}" target="_blank" class="text-indigo-500 font-semibold hover:underline">${data.proposalLink}</a>`);
+                document.getElementById('copy-text-content').innerHTML = finalApplicationCopy;
+                
+                document.getElementById('proposal-title').innerText = data.proposalTitle;
+                document.getElementById('proposal-link').href = data.proposalLink;
+                document.getElementById('proposal-link-text').innerText = data.proposalLink;
+
+                const mermaidContainer = document.getElementById('mermaid-diagram-container');
+                const mermaidCodeEl = document.getElementById('mermaid-code-content');
+                mermaidCodeEl.innerText = data.mermaidCode;
+                mermaidContainer.innerHTML = data.mermaidCode;
+                mermaid.run({ nodes: [mermaidContainer] });
+
+                tabButtons[0].click();
+            }
+
+            // Initialize Mermaid.js
+            mermaid.initialize({ startOnLoad: false, theme: 'base', themeVariables: {
+                primaryColor: '#F9FAFB',      // gray-50
+                primaryTextColor: '#111827',  // gray-900
+                primaryBorderColor: '#6366F1',// indigo-500
+                lineColor: '#4B5563',         // gray-600
+                textColor: '#374151',         // gray-700
+                fontSize: '14px',
+            }});
+        });
+    </script>
+
+</body>
+</html>
