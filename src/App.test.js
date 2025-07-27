@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders upwork assistant header', () => {
+test('renders online jobs assistant header', () => {
   render(<App />);
-  const headerElement = screen.getByText(/upwork ai application assistant/i);
+  const headerElement = screen.getByText(/online jobs ai assistant/i);
   expect(headerElement).toBeInTheDocument();
 });

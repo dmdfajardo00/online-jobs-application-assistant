@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Jobs AI Assistant</title>
+    <title>Online Jobs Application AI Assistant</title>
     
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,20 +16,11 @@
     <!-- Phosphor Icons for UI elements -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- Mermaid.js for rendering diagrams -->
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-
     <style>
         /* Custom styles to complement Tailwind */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #F9FAFB; /* neutral.gray50 */
-        }
-        /* Style for the rendered mermaid diagram */
-        .mermaid svg {
-            width: 100%;
-            height: auto;
-            font-family: 'Inter', sans-serif;
         }
         /* Custom scrollbar for a cleaner look */
         ::-webkit-scrollbar {
@@ -55,6 +46,11 @@
             border-color: #4f46e5; /* indigo-600 */
             background-color: #eef2ff; /* indigo-50 */
         }
+        /* Styles for the gauge */
+        #gauge-needle {
+            transition: transform 0.5s ease-in-out;
+            transform-origin: bottom center;
+        }
     </style>
 </head>
 <body class="antialiased text-gray-800">
@@ -63,7 +59,7 @@
         <div class="max-w-7xl mx-auto">
             <!-- Header Section -->
             <header class="mb-8 text-center">
-                <h1 class="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900">Online Jobs AI Assistant</h1>
+                <h1 class="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900">Online Jobs Application AI Assistant</h1>
                 <p class="mt-2 text-base sm:text-lg text-gray-600">Generate professional application assets from a job description in seconds.</p>
             </header>
 
@@ -122,7 +118,7 @@
                         <div class="bg-gray-100 p-1 rounded-xl flex items-center space-x-1 mb-4">
                             <button class="output-tab-btn flex-1 py-2 px-1 text-sm font-medium rounded-lg" data-tab="application-copy">Application Copy</button>
                             <button class="output-tab-btn flex-1 py-2 px-1 text-sm font-medium rounded-lg" data-tab="proposal-doc">Proposal Doc</button>
-                            <button class="output-tab-btn flex-1 py-2 px-1 text-sm font-medium rounded-lg" data-tab="workflow-diagram">Workflow Diagram</button>
+                            <button class="output-tab-btn flex-1 py-2 px-1 text-sm font-medium rounded-lg" data-tab="profile-analysis">Profile Analysis</button>
                         </div>
 
                         <!-- Tab Content Area -->
@@ -162,21 +158,37 @@
                                 </div>
                             </div>
 
-                            <!-- Workflow Diagram Tab -->
-                            <div id="workflow-diagram" class="output-tab-content h-full hidden flex flex-col">
+                            <!-- Profile Analysis Tab -->
+                            <div id="profile-analysis" class="output-tab-content h-full hidden flex-col">
                                  <div class="bg-gray-50 rounded-lg border border-gray-200 flex-1 grid grid-rows-[auto_1fr] overflow-hidden">
-                                    <div class="p-3 border-b border-gray-200 flex justify-between items-center">
-                                        <h4 class="font-semibold text-gray-700 text-sm">Generated Workflow Diagram</h4>
-                                        <button class="copy-btn bg-white text-gray-500 hover:bg-gray-100 hover:text-indigo-500 p-1.5 rounded-md transition border border-gray-200" data-copy-target="mermaid-code-content" title="Copy Mermaid Code">
-                                            <i class="ph ph-code"></i>
-                                        </button>
+                                    <div class="p-3 border-b border-gray-200">
+                                        <h4 class="font-semibold text-gray-700 text-sm">Compatibility Analysis</h4>
                                     </div>
                                     <div class="p-4 overflow-y-auto">
-                                        <div id="mermaid-diagram-container" class="mermaid bg-white p-4 rounded-md"></div>
-                                        <details class="mt-4 text-sm">
-                                            <summary class="cursor-pointer font-medium text-gray-600 hover:text-indigo-500">View Raw Mermaid Code</summary>
-                                            <pre id="mermaid-code-content" class="mt-2 p-3 bg-gray-100 rounded-md text-xs whitespace-pre-wrap overflow-x-auto"></pre>
-                                        </details>
+                                        <!-- Gauge -->
+                                        <div class="flex justify-center items-center mb-4">
+                                            <div class="relative w-48 h-24">
+                                                <svg class="w-full h-full" viewBox="0 0 100 50">
+                                                    <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#e5e7eb" stroke-width="10" stroke-linecap="round"></path>
+                                                    <path id="gauge-fill" d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#4f46e5" stroke-width="10" stroke-linecap="round" style="stroke-dasharray: 125.6; stroke-dashoffset: 125.6; transition: stroke-dashoffset 0.5s ease-in-out;"></path>
+                                                </svg>
+                                                <div class="absolute bottom-0 w-full text-center">
+                                                    <span id="gauge-score" class="text-3xl font-bold text-gray-800">0</span>
+                                                    <span class="text-gray-500">%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Analysis Text -->
+                                        <div class="text-center mb-6">
+                                            <p id="compatibility-text" class="text-lg font-medium text-gray-800"></p>
+                                        </div>
+                                        <!-- Reasons -->
+                                        <div class="space-y-3">
+                                            <h5 class="font-semibold text-gray-700">Key Strengths:</h5>
+                                            <ul id="analysis-reasons" class="space-y-3">
+                                                <!-- Reasons will be populated by JS -->
+                                            </ul>
+                                        </div>
                                     </div>
                                  </div>
                             </div>
@@ -233,19 +245,16 @@ I'm happy to discuss this further. Just respond to this proposal, and we can con
 Thank you!`,
                 proposalTitle: "Gmail to Google Drive: Receipt & Invoice Automation",
                 proposalLink: "https://docs.google.com/document/d/example12345/edit",
-                mermaidCode: `graph TD
-    A[Start: Email with Invoice/Receipt Arrives] --> B{Filter Emails by Sender/Subject};
-    B --> C[Extract PDF/Image Attachment];
-    C --> D[Use OCR to Read Attachment Data];
-    D --> E{Extracted Data};
-    E --> F[Customer Name];
-    E --> G[Invoice Number];
-    E --> H[Total Amount];
-    E --> I[Date];
-    I --> J[Rename File: YYYY-MM-DD_Customer_Invoice.pdf];
-    J --> K[Save Renamed File to Google Drive];
-    K --> L[Log Entry in Google Sheet];
-    L --> M[End: Notify via Slack/Email];`
+                analysis: {
+                    score: 88,
+                    level: 'EXCELLENT',
+                    reasons: [
+                        "Your extensive experience in AI automation aligns perfectly with the core requirements of the project.",
+                        "The mention of building end-to-end project management systems is a strong indicator of your capability for this role.",
+                        "Your background in CRM and no-code integrations is highly relevant to the described tasks.",
+                        "The proposed workflow demonstrates a clear and effective understanding of the client's needs."
+                    ]
+                }
             };
 
             // --- Event Listeners ---
@@ -349,6 +358,16 @@ Thank you!`,
                 }
             }
 
+            function updateGauge(score) {
+                const gaugeFill = document.getElementById('gauge-fill');
+                const scoreText = document.getElementById('gauge-score');
+                const totalLength = 125.6; // Circumference of the semi-circle
+                const offset = totalLength - (score / 100) * totalLength;
+                
+                gaugeFill.style.strokeDashoffset = offset;
+                scoreText.textContent = score;
+            }
+
             function setLoadingState(isLoading) {
                 if (isLoading) {
                     generateBtn.disabled = true;
@@ -366,18 +385,33 @@ Thank you!`,
                 outputPlaceholder.style.display = 'none';
                 outputContent.style.display = 'flex';
 
+                // Populate Application Copy
                 const finalApplicationCopy = data.applicationCopy.replace('$$$', `<a href="${data.proposalLink}" target="_blank" class="text-indigo-500 font-semibold hover:underline">${data.proposalLink}</a>`);
                 document.getElementById('copy-text-content').innerHTML = finalApplicationCopy;
                 
+                // Populate Proposal Doc
                 document.getElementById('proposal-title').innerText = data.proposalTitle;
                 document.getElementById('proposal-link').href = data.proposalLink;
                 document.getElementById('proposal-link-text').innerText = data.proposalLink;
 
-                const mermaidContainer = document.getElementById('mermaid-diagram-container');
-                const mermaidCodeEl = document.getElementById('mermaid-code-content');
-                mermaidCodeEl.innerText = data.mermaidCode;
-                mermaidContainer.innerHTML = data.mermaidCode;
-                mermaid.run({ nodes: [mermaidContainer] });
+                // Populate Profile Analysis
+                const analysis = data.analysis;
+                updateGauge(analysis.score);
+                const compatibilityText = document.getElementById('compatibility-text');
+                let levelClass = 'text-green-600';
+                if (analysis.level === 'MEDIUM') levelClass = 'text-yellow-600';
+                if (analysis.level === 'LOW') levelClass = 'text-red-600';
+
+                compatibilityText.innerHTML = `Overall Match: <span class="font-bold ${levelClass}">${analysis.level}</span>`;
+
+                const reasonsList = document.getElementById('analysis-reasons');
+                reasonsList.innerHTML = ''; // Clear previous reasons
+                analysis.reasons.forEach(reason => {
+                    const li = document.createElement('li');
+                    li.className = 'flex items-start gap-3 text-sm';
+                    li.innerHTML = `<i class="ph ph-check-circle text-green-500 text-lg mt-0.5 shrink-0"></i><span class="text-gray-700">${reason}</span>`;
+                    reasonsList.appendChild(li);
+                });
 
                 // Click the first output tab by default
                 handleTabClick(outputTabButtons, outputTabContents, 'application-copy');
@@ -387,16 +421,6 @@ Thank you!`,
             
             // Set default active tab for the input panel
             handleTabClick(inputTabButtons, inputTabContents, 'job-input');
-
-            // Initialize Mermaid.js
-            mermaid.initialize({ startOnLoad: false, theme: 'base', themeVariables: {
-                primaryColor: '#F9FAFB',      // gray-50
-                primaryTextColor: '#111827',  // gray-900
-                primaryBorderColor: '#6366F1',// indigo-500
-                lineColor: '#4B5563',         // gray-600
-                textColor: '#374151',         // gray-700
-                fontSize: '14px',
-            }});
         });
     </script>
 
