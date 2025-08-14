@@ -681,7 +681,7 @@ const App = () => {
             }
 
             // Send webhook request with proper headers
-            const response = await fetch('https://fajardo-automations.up.railway.app/webhook/2d0cd1a8-2df2-43da-b7c6-358af4b59110', {
+            const response = await fetch(process.env.REACT_APP_WEBHOOK_URL, {
                 method: 'POST',
                 body: formData,
                 // Important: Don't manually set Content-Type for FormData with files
@@ -690,11 +690,12 @@ const App = () => {
                 headers: {
                     // Only set headers that don't interfere with multipart/form-data
                     'Accept': 'application/json',
+                    'Authorization': `Bearer ${process.env.REACT_APP_WEBHOOK_AUTH_TOKEN}`,
                 },
             });
 
             // Log the request details for debugging
-            console.log('Webhook request sent to:', 'https://fajardo-automations.up.railway.app/webhook/2d0cd1a8-2df2-43da-b7c6-358af4b59110');
+            console.log('Webhook request sent to:', process.env.REACT_APP_WEBHOOK_URL);
             console.log('Request method:', 'POST');
             console.log('Content-Type will be automatically set to: multipart/form-data; boundary=...');
 

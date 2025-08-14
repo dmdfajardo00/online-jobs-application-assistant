@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Online Jobs AI Assistant — App Mockup</title>
+    <meta name="description" content="Improved mockup of the Online Jobs AI Assistant application UI." />
+
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+
+    <!-- Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Tailwind (CDN for mockup) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] },
+            colors: {
+              gray: { 25: '#fcfcfd' },
+            },
+            boxShadow: {
+              subtle: '0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06)'
+            }
+          },
+          container: { center: true, padding: '1rem', screens: { lg: '1120px' } },
+        }
+      };
+    </script>
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- React + ReactDOM (UMD) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX in this standalone mockup -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      html, body { height: 100%; }
+      body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'; }
+
+      @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+      }
+      .shimmer { background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 37%, #f3f4f6 63%); background-size: 400% 100%; animation: shimmer 2.25s linear infinite; }
+      .drag-over { border-color: #111827 !important; background-color: #f3f4f6 !important; }
+    </style>
+  </head>
+  <body class="bg-gray-25 text-gray-800 antialiased">
+    <div id="root"></div>
+
+    <script type="text/babel" data-presets="env,react">
+      const { useState, useEffect, useRef } = React;
+
+      const Container = ({ children, className = '' }) => (
+        <div className={`container ${className}`}>{children}</div>
+      );
+
+      const AppHeader = () => (
+        <header className="sticky top-0 z-40 backdrop-blur bg-white/70 border-b border-gray-100">
+          <Container className="flex items-center justify-between py-3">
+            <a href="#" className="flex items-center gap-2">
+              <img src="/logo192.png" alt="Online Jobs AI" className="h-7 w-7 rounded-lg shadow-subtle" />
+              <span className="font-semibold tracking-tight">Online Jobs AI Assistant</span>
+            </a>
+            <nav className="hidden md:flex items-center gap-6 text-sm">
+              <a className="text-gray-600 hover:text-gray-900" href="#">Docs</a>
+              <a className="text-gray-600 hover:text-gray-900" href="#">Changelog</a>
+              <a className="inline-flex items-center gap-2 rounded-lg bg-black px-3 py-1.5 font-semibold text-white shadow-subtle hover:bg-gray-900" href="#">Open App <i className="ph ph-arrow-up-right"></i></a>
+            </nav>
+          </Container>
+        </header>
+      );
+
+      const SectionTitle = () => (
+        <div className="text-center py-6">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">Generate application assets from any job post</h1>
+          <p className="mt-2 text-gray-600">Paste a job description, add your info or resume PDF, and get a tailored application copy, proposal doc, and compatibility analysis.</p>
+        </div>
+      );
+
+      const InputTabs = ({ activeTab, setActiveTab }) => {
+        const tabs = [
+          { id: 'job', label: 'Job Description', icon: 'ph-briefcase' },
+          { id: 'info', label: 'My Info', icon: 'ph-user' },
+        ];
+        return (
+          <div className="bg-gray-100 p-1 rounded-xl flex items-center space-x-1 mb-4">
+            {tabs.map(t => (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id)}
+                className={`flex-1 py-2 px-2 text-sm font-medium rounded-lg transition-all ${activeTab === t.id ? 'bg-white text-gray-900 shadow' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                <i className={`ph ${t.icon} mr-1`}></i>{t.label}
+              </button>
+            ))}
+          </div>
+        );
+      };
+
+      const ControlBar = ({ tone, setTone, length, setLength }) => (
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-gray-600">Tone</span>
+            <div className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white p-1 shadow-subtle">
+              {['Professional', 'Friendly', 'Technical'].map(t => (
+                <button key={t} onClick={() => setTone(t)} className={`px-3 py-1.5 text-xs font-medium rounded-full ${tone === t ? 'bg-black text-white' : 'text-gray-700 hover:bg-gray-50'}`}>{t}</button>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-gray-600">Length</span>
+            <div className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white p-1 shadow-subtle">
+              {['Short', 'Medium', 'Long'].map(l => (
+                <button key={l} onClick={() => setLength(l)} className={`px-3 py-1.5 text-xs font-medium rounded-full ${length === l ? 'bg-black text-white' : 'text-gray-700 hover:bg-gray-50'}`}>{l}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+
+      const JobInput = ({ value, setValue }) => {
+        const charCount = value.length;
+        const isValid = charCount >= 100;
+        return (
+          <div className="h-full flex flex-col">
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-sm font-semibold text-gray-800">Online Job Description</h2>
+              <span className={`text-xs font-medium ${isValid ? 'text-green-600' : charCount > 0 ? 'text-amber-600' : 'text-gray-500'}`}>{charCount}/100 {isValid && '✓'}</span>
+            </div>
+            <textarea
+              id="job-description"
+              className={`w-full flex-grow p-4 border rounded-lg focus:ring-2 focus:ring-black focus:border-black transition ${charCount > 0 && !isValid ? 'border-amber-300' : 'border-gray-300'}`}
+              placeholder="Paste the full online job description here..."
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+            ></textarea>
+          </div>
+        );
+      };
+
+      const MyInfo = ({ value, setValue, selectedFile, setSelectedFile }) => {
+        const validateFile = (file) => {
+          const maxSize = 10 * 1024 * 1024;
+          if (!file) return { valid: false, error: 'No file selected' };
+          if (file.type !== 'application/pdf') return { valid: false, error: 'Invalid type. Upload a PDF.' };
+          if (file.size > maxSize) return { valid: false, error: 'File must be under 10MB.' };
+          return { valid: true };
+        };
+
+        const handleFileChange = (e) => {
+          const file = e.target.files[0];
+          const res = validateFile(file);
+          if (res.valid) setSelectedFile(file); else { setSelectedFile(null); alert(res.error); e.target.value=''; }
+        };
+        const handleDrop = (e) => {
+          e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+          const file = e.dataTransfer.files?.[0];
+          const res = validateFile(file);
+          if (res.valid) setSelectedFile(file); else { setSelectedFile(null); alert(res.error); }
+        };
+        const handleDragOver = (e) => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); };
+        const handleDragLeave = (e) => { e.currentTarget.classList.remove('drag-over'); };
+        const removeFile = () => { setSelectedFile(null); const el = document.getElementById('file-upload'); if (el) el.value=''; };
+
+        const charCount = value.length;
+        const isValid = charCount >= 100 || selectedFile;
+        const showCount = !selectedFile;
+
+        return (
+          <div className="h-full flex flex-col">
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-sm font-semibold text-gray-800">Your Information</h2>
+              {showCount ? (
+                <span className={`text-xs font-medium ${isValid ? 'text-green-600' : charCount > 0 ? 'text-amber-600' : 'text-gray-500'}`}>{charCount}/100 {isValid && '✓'}</span>
+              ) : (
+                <span className="text-xs font-medium text-green-600">PDF uploaded ✓</span>
+              )}
+            </div>
+            <textarea
+              id="my-info"
+              className={`w-full flex-grow p-4 border rounded-lg focus:ring-2 focus:ring-black focus:border-black transition ${selectedFile ? 'border-gray-300 opacity-75' : (charCount > 0 && !isValid ? 'border-amber-300' : 'border-gray-300')}`}
+              placeholder={selectedFile ? 'Optional: Add extra context (PDF is primary source)...' : 'Paste text about you, your skills, and experience...'}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+            ></textarea>
+
+            <div
+              className={`mt-3 flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-lg transition-colors ${selectedFile ? 'border-green-300 bg-green-50' : 'border-gray-300 hover:bg-gray-50 cursor-pointer'}`}
+              onClick={!selectedFile ? () => document.getElementById('file-upload').click() : undefined}
+              onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave}
+            >
+              <div className="flex flex-col items-center justify-center text-center">
+                {selectedFile ? (
+                  <>
+                    <i className="ph ph-check-circle text-3xl text-green-600 mb-2"></i>
+                    <p className="text-sm font-medium text-green-700">{selectedFile.name}</p>
+                    <p className="text-xs text-gray-500 mb-2">{(selectedFile.size/1024/1024).toFixed(2)} MB</p>
+                    <div className="flex gap-2">
+                      <button onClick={(e)=>{e.stopPropagation(); document.getElementById('file-upload').click();}} className="px-3 py-1.5 text-xs bg-black text-white rounded-md hover:bg-gray-900">Replace</button>
+                      <button onClick={(e)=>{e.stopPropagation(); removeFile();}} className="px-3 py-1.5 text-xs bg-gray-500 text-white rounded-md hover:bg-gray-600">Remove</button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <i className="ph ph-file-pdf text-3xl text-gray-400 mb-2"></i>
+                    <p className="text-sm text-gray-600"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                    <p className="text-xs text-gray-500">PDF only (max 10MB)</p>
+                  </>
+                )}
+              </div>
+              <input id="file-upload" type="file" className="hidden" accept=".pdf" onChange={handleFileChange} />
+            </div>
+          </div>
+        );
+      };
+
+      const Tabs = ({ activeTab, setActiveTab }) => {
+        const tabs = [
+          { id: 'copy', label: 'Application Copy', icon: 'ph-text-aa' },
+          { id: 'doc', label: 'Proposal Doc', icon: 'ph-file-doc' },
+          { id: 'analysis', label: 'Profile Analysis', icon: 'ph-gauge' },
+        ];
+        return (
+          <div className="bg-gray-100 p-1 rounded-xl flex items-center space-x-1 mb-4">
+            {tabs.map(t => (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id)}
+                className={`flex-1 py-2 px-2 text-sm font-medium rounded-lg transition-all ${activeTab === t.id ? 'bg-white text-gray-900 shadow' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                <i className={`ph ${t.icon} mr-1`}></i>{t.label}
+              </button>
+            ))}
+          </div>
+        );
+      };
+
+      const Placeholder = () => (
+        <div className="flex-1 flex items-center justify-center flex-col text-center text-gray-500">
+          <i className="ph ph-files text-5xl text-gray-400 mb-3"></i>
+          <h3 className="text-base font-semibold text-gray-700">Your generated assets will appear here.</h3>
+          <p className="text-xs">Paste a job description and click generate.</p>
+        </div>
+      );
+
+      const Skeleton = ({ activeTab }) => (
+        <div className="flex-1 flex flex-col min-h-0">
+          <Tabs activeTab={activeTab} setActiveTab={()=>{}} />
+          <div className="flex-1 overflow-hidden min-h-0 grid grid-rows-[auto_1fr] bg-gray-50 border border-gray-200 rounded-lg">
+            <div className="p-3 border-b border-gray-200 flex justify-between items-center">
+              <div className="h-4 w-40 rounded shimmer"></div>
+              <div className="h-8 w-8 rounded-lg shimmer"></div>
+            </div>
+            <div className="p-4 overflow-y-auto space-y-2">
+              {Array.from({length: 14}).map((_,i)=>(<div key={i} className={`h-2.5 rounded shimmer ${i%3===0?'w-11/12':i%3===1?'w-8/12':'w-10/12'}`}></div>))}
+            </div>
+          </div>
+        </div>
+      );
+
+      const ApplicationCopy = ({ content, onCopy, tone, setToneQuick }) => (
+        <div className="h-full flex flex-col">
+          <div className="bg-gray-50 rounded-lg border border-gray-200 flex-1 grid grid-rows-[auto_1fr] overflow-hidden">
+            <div className="p-3 border-b border-gray-200 flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <h4 className="font-semibold text-gray-700 text-sm">Generated Application Copy</h4>
+                <span className="text-[11px] text-gray-500">Tone: <span className="font-medium text-gray-800">{tone}</span></span>
+              </div>
+              <div className="flex items-center gap-2">
+                {['Professional','Friendly','Technical'].map(t => (
+                  <button key={t} onClick={()=>setToneQuick(t)} className="hidden sm:inline-flex items-center rounded-full border border-gray-300 bg-white px-2.5 py-1 text-[11px] text-gray-700 hover:bg-gray-100">{t}</button>
+                ))}
+                <button onClick={onCopy} className="bg-white text-gray-600 hover:bg-gray-100 p-1.5 rounded-md border border-gray-200" title="Copy">
+                  <i className="ph ph-clipboard-text text-lg"></i>
+                </button>
+              </div>
+            </div>
+            <div className="p-4 overflow-y-auto">
+              <pre className="text-sm whitespace-pre-wrap leading-relaxed text-gray-700">{content}</pre>
+            </div>
+          </div>
+        </div>
+      );
+
+      const ProposalDoc = ({ link }) => {
+        const [copied, setCopied] = useState(false);
+        const copyLink = async () => { await navigator.clipboard.writeText(link); setCopied(true); setTimeout(()=>setCopied(false), 1200); };
+        return (
+          <div className="h-full">
+            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center flex flex-col items-center justify-center h-full">
+              <i className="ph ph-file-doc text-5xl text-black mb-3"></i>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Generated Proposal Document</h3>
+              <p className="text-sm text-gray-500 mb-6 max-w-sm">A share‑ready Google Doc has been created using the correct structure and sections.</p>
+              <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
+                <a href={link} target="_blank" rel="noreferrer" className="flex-1 text-center bg-black text-white font-semibold py-2 px-4 rounded-lg hover:bg-gray-900 transition flex items-center justify-center gap-2">
+                  <i className="ph ph-arrow-square-out"></i>
+                  <span>Open Google Doc</span>
+                </a>
+                <button onClick={copyLink} className={`flex-1 sm:flex-initial font-semibold py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 ${copied?'bg-green-100 border border-green-300 text-green-700':'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'}`}>
+                  <i className={`ph ${copied?'ph-check-circle':'ph-link'}`}></i>
+                  <span>{copied?'Copied!':'Copy Link'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      const ProfileAnalysis = ({ score, reasons }) => {
+        const totalLen = 125.6; // semicircle circumference
+        const offset = totalLen - (score/100)*totalLen;
+        const level = score>=86?'EXCELLENT':score>=71?'GOOD':score>=51?'AVERAGE':score>=26?'BELOW AVERAGE':'POOR';
+        const levelClass = level==='POOR'?'text-red-600':level==='BELOW AVERAGE'?'text-orange-600':level==='AVERAGE'?'text-yellow-600':'text-green-600';
+        return (
+          <div className="h-full flex flex-col">
+            <div className="bg-gray-50 rounded-lg border border-gray-200 flex-1 grid grid-rows-[auto_1fr] overflow-hidden">
+              <div className="p-3 border-b border-gray-200">
+                <h4 className="font-semibold text-gray-700 text-sm">Compatibility Analysis</h4>
+              </div>
+              <div className="p-4 overflow-y-auto">
+                <div className="flex justify-center items-center mb-4">
+                  <div className="relative w-48 h-24">
+                    <svg className="w-full h-full" viewBox="0 0 100 50">
+                      <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#e5e7eb" strokeWidth="10" strokeLinecap="round"></path>
+                      <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#111111" strokeWidth="10" strokeLinecap="round" style={{ strokeDasharray: `${totalLen}`, strokeDashoffset: `${offset}`, transition: 'stroke-dashoffset 0.6s ease' }}></path>
+                    </svg>
+                    <div className="absolute bottom-0 w-full text-center">
+                      <span className="text-3xl font-bold text-gray-800">{score}</span>
+                      <span className="text-gray-500">%</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center mb-6">
+                  <p className="text-lg font-medium text-gray-800">Overall Match: <span className={`font-bold ${levelClass}`}>{level}</span></p>
+                </div>
+                <div className="space-y-3">
+                  <h5 className="font-semibold text-gray-700">Key Strengths:</h5>
+                  <ul className="space-y-3">
+                    {reasons.map((r, i) => (
+                      <li key={i} className="flex items-start gap-3 text-sm">
+                        <i className="ph ph-check-circle text-green-500 text-lg mt-0.5 shrink-0"></i>
+                        <span className="text-gray-700">{r}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      const InputPanel = ({ jobDescription, setJobDescription, myInfo, setMyInfo, selectedFile, setSelectedFile, tone, setTone, length, setLength, onGenerate, isLoading, errorMessage }) => (
+        <div className="bg-white p-6 rounded-xl shadow border border-gray-200 flex flex-col">
+          {errorMessage && (
+            <div className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-amber-800 text-sm flex items-center gap-2"><i className="ph ph-warning"></i><span>{errorMessage}</span></div>
+          )}
+          <InputTabs activeTab={InputPanel.activeTab || 'job'} setActiveTab={(id)=>{ InputPanel.activeTab = id; rerender(); }} />
+          <div className="flex-1 flex flex-col min-h-0 h-[26rem]">
+            {(InputPanel.activeTab || 'job') === 'job' ? (
+              <JobInput value={jobDescription} setValue={setJobDescription} />
+            ) : (
+              <MyInfo value={myInfo} setValue={setMyInfo} selectedFile={selectedFile} setSelectedFile={setSelectedFile} />
+            )}
+          </div>
+          <div className="mt-4">
+            <ControlBar tone={tone} setTone={setTone} length={length} setLength={setLength} />
+            <button
+              className="mt-4 w-full bg-black text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={onGenerate} disabled={isLoading}
+            >
+              {isLoading ? (<><svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Generating…</span></>) : (<><i className="ph ph-magic-wand text-xl"></i><span>Generate Application Assets</span></>)}
+            </button>
+          </div>
+        </div>
+      );
+
+      const OutputPanel = ({ isLoading, data, activeTab, setActiveTab, tone, setTone }) => (
+        <div className="bg-white p-6 rounded-xl shadow border border-gray-200 flex flex-col overflow-hidden h-[31rem]">
+          {isLoading ? (
+            <Skeleton activeTab={activeTab} />
+          ) : data ? (
+            <div className="flex-1 flex flex-col min-h-0">
+              <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
+              <div className="flex-1 overflow-hidden min-h-0">
+                {activeTab === 'copy' && (
+                  <ApplicationCopy content={data.applicationCopy} tone={tone} setToneQuick={setTone} onCopy={() => navigator.clipboard.writeText(data.applicationCopy)} />
+                )}
+                {activeTab === 'doc' && (
+                  <ProposalDoc link={data.proposalLink} />
+                )}
+                {activeTab === 'analysis' && (
+                  <ProfileAnalysis score={data.analysis.score} reasons={data.analysis.reasons} />
+                )}
+              </div>
+            </div>
+          ) : (
+            <Placeholder />
+          )}
+        </div>
+      );
+
+      // Simple render cycle helper for tabs that store local state on function object
+      let rerender = () => {};
+
+      const App = () => {
+        const [jobDescription, setJobDescription] = useState('');
+        const [myInfo, setMyInfo] = useState('');
+        const [selectedFile, setSelectedFile] = useState(null);
+        const [tone, setTone] = useState('Professional');
+        const [length, setLength] = useState('Medium');
+        const [isLoading, setIsLoading] = useState(false);
+        const [data, setData] = useState(null);
+        const [activeTab, setActiveTab] = useState('copy');
+        const [errorMessage, setErrorMessage] = useState('');
+
+        rerender = () => root.render(<App />); // allow tab controls to flip and re-render
+
+        const validate = () => {
+          const errors = [];
+          if (!jobDescription.trim()) errors.push('Job description is required');
+          else if (jobDescription.trim().length < 100) errors.push('Job description must be at least 100 characters');
+          if (!selectedFile) {
+            if (!myInfo.trim()) errors.push('Your information is required (or upload a PDF)');
+            else if (myInfo.trim().length < 100) errors.push('Your information must be at least 100 characters (or upload a PDF)');
+          }
+          return errors;
+        };
+
+        const onGenerate = async () => {
+          const errs = validate();
+          if (errs.length) { setErrorMessage(errs[0]); return; } else { setErrorMessage(''); }
+          setIsLoading(true); setData(null);
+          // simulate generation delay
+          setTimeout(() => {
+            const score = 86;
+            const reasons = [
+              'Strong alignment with required skills',
+              'Relevant project history with measurable outcomes',
+              'Clear understanding of deliverables and timeline',
+            ];
+            const copy = `Hi there — ${tone} application tailored to your ${length.toLowerCase()} preferences.\n\nI’ve reviewed your job post thoroughly and can deliver a clear, validated workflow that meets your goals. I’ll provide structured milestones, transparent communication, and rapid iterations.\n\nNext steps: I can share a short plan and timeline today. Looking forward to collaborating!`;
+            setData({
+              applicationCopy: copy,
+              proposalLink: 'https://docs.google.com/document/d/example12345/edit',
+              analysis: { score, reasons }
+            });
+            setActiveTab('copy');
+            setIsLoading(false);
+          }, 900);
+        };
+
+        return (
+          <div className="min-h-screen pb-10">
+            <AppHeader />
+            <SectionTitle />
+            <Container>
+              <main className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <InputPanel
+                  jobDescription={jobDescription}
+                  setJobDescription={setJobDescription}
+                  myInfo={myInfo}
+                  setMyInfo={setMyInfo}
+                  selectedFile={selectedFile}
+                  setSelectedFile={setSelectedFile}
+                  tone={tone}
+                  setTone={setTone}
+                  length={length}
+                  setLength={setLength}
+                  onGenerate={onGenerate}
+                  isLoading={isLoading}
+                  errorMessage={errorMessage}
+                />
+                <OutputPanel
+                  isLoading={isLoading}
+                  data={data}
+                  activeTab={activeTab}
+                  setActiveTab={setActiveTab}
+                  tone={tone}
+                  setTone={setTone}
+                />
+              </main>
+            </Container>
+          </div>
+        );
+      };
+
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<App />);
+    </script>
+  </body>
+  </html>
+
+

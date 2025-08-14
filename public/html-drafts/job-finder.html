@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Online Jobs AI Assistant — Job Finder</title>
+    <meta name="description" content="Upload your resume and discover matching jobs with AI-powered insights and tailored messages." />
+
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+
+    <!-- Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Tailwind (CDN for mockup) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] },
+            colors: { gray: { 25: '#fcfcfd' } },
+            boxShadow: {
+              subtle: '0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06)'
+            }
+          },
+          container: { center: true, padding: '1rem', screens: { lg: '1280px', xl: '1440px', '2xl': '1680px' } },
+        }
+      };
+    </script>
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- React + ReactDOM (UMD) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX in this standalone mockup -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      html, body { height: 100%; }
+      body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'; }
+      @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+      .shimmer { background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 37%, #f3f4f6 63%); background-size: 400% 100%; animation: shimmer 2.25s linear infinite; }
+      .drag-over { border-color: #111827 !important; background-color: #f3f4f6 !important; }
+      /* Support for multi-line truncation without Tailwind plugin */
+      .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    </style>
+  </head>
+  <body class="bg-gray-25 text-gray-800 antialiased">
+    <div id="root"></div>
+    <!-- Safelist for Tailwind Play CDN to include dynamic classes used in JS-rendered UI -->
+    <div aria-hidden="true" class="hidden bg-green-600 bg-amber-600 bg-red-600 text-amber-700 text-red-700 text-green-700 border-amber-200 border-red-200 border-green-200 bg-red-50 bg-amber-50 bg-green-50"></div>
+    <div aria-hidden="true" class="hidden lg:grid-cols-[1fr_2fr_1fr] lg:grid-cols-[1fr_3fr]"></div>
+
+    <script type="text/babel" data-presets="env,react">
+      const { useState, useEffect, useMemo, useRef } = React;
+
+      const Container = ({ children, className = '' }) => (
+        <div className={`container ${className}`}>{children}</div>
+      );
+
+      const AppHeader = () => (
+        <header className="sticky top-0 z-40 backdrop-blur bg-white/70 border-b border-gray-100">
+          <Container className="flex items-center justify-between py-3">
+            <a href="#" className="flex items-center gap-2">
+              <img src="/logo192.png" alt="Online Jobs AI" className="h-7 w-7 rounded-lg shadow-subtle" />
+              <span className="font-semibold tracking-tight">Job Finder</span>
+            </a>
+            <nav className="hidden md:flex items-center gap-6 text-sm">
+              <a className="text-gray-600 hover:text-gray-900" href="#">Docs</a>
+              <a className="text-gray-600 hover:text-gray-900" href="#">Changelog</a>
+              <a className="inline-flex items-center gap-2 rounded-lg bg-black px-3 py-1.5 font-semibold text-white shadow-subtle hover:bg-gray-900" href="#">Open App <i className="ph ph-arrow-up-right"></i></a>
+            </nav>
+          </Container>
+        </header>
+      );
+
+      const SectionTitle = () => (
+        <div className="text-center py-6">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">Upload a resume and surface matching jobs</h1>
+          <p className="mt-2 text-gray-600">Scan roles across the web, shortlist with filters, and get AI‑tailored outreach messages for each company.</p>
+        </div>
+      );
+
+      // Utility helpers
+      const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+
+      const successLevelFor = (compat) => compat >= 80 ? 'High' : compat >= 60 ? 'Medium' : 'Low';
+      const levelColor = (level) => level === 'High' ? 'green' : level === 'Medium' ? 'amber' : 'red';
+      const levelClass = (level) => level === 'High' ? 'text-green-700 bg-green-50 border-green-200' : level === 'Medium' ? 'text-amber-700 bg-amber-50 border-amber-200' : 'text-red-700 bg-red-50 border-red-200';
+      const progressClass = (compat) => compat >= 80 ? 'bg-green-600' : compat >= 60 ? 'bg-amber-600' : 'bg-red-600';
+
+      const initialsFor = (name) => (name || '?').split(' ').map(w => w[0]).filter(Boolean).slice(0,2).join('').toUpperCase();
+
+      const Gauge = ({ score = 0 }) => {
+        const totalLen = 125.6; // semicircle circumference
+        const offset = totalLen - (clamp(score, 0, 100)/100)*totalLen;
+        return (
+          <div className="relative w-40 h-20">
+            <svg className="w-full h-full" viewBox="0 0 100 50">
+              <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#e5e7eb" strokeWidth="10" strokeLinecap="round"></path>
+              <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#111111" strokeWidth="10" strokeLinecap="round" style={{ strokeDasharray: `${totalLen}`, strokeDashoffset: `${offset}`, transition: 'stroke-dashoffset 0.45s ease' }}></path>
+            </svg>
+            <div className="absolute bottom-0 inset-x-0 text-center">
+              <span className="text-2xl font-bold">{clamp(score,0,100)}</span>
+              <span className="text-gray-500">%</span>
+            </div>
+          </div>
+        );
+      };
+
+      const ResumeUploader = ({ resumeText, setResumeText, resumeFile, setResumeFile }) => {
+        const validateFile = (file) => {
+          const maxSize = 10 * 1024 * 1024;
+          if (!file) return { valid: false, error: 'No file selected' };
+          if (file.type !== 'application/pdf') return { valid: false, error: 'Invalid type. Upload a PDF.' };
+          if (file.size > maxSize) return { valid: false, error: 'File must be under 10MB.' };
+          return { valid: true };
+        };
+        const handleFileChange = (e) => {
+          const file = e.target.files[0];
+          const res = validateFile(file);
+          if (res.valid) setResumeFile(file); else { setResumeFile(null); alert(res.error); e.target.value=''; }
+        };
+        const handleDrop = (e) => {
+          e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+          const file = e.dataTransfer.files?.[0];
+          const res = validateFile(file);
+          if (res.valid) setResumeFile(file); else { setResumeFile(null); alert(res.error); }
+        };
+        const handleDragOver = (e) => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); };
+        const handleDragLeave = (e) => { e.currentTarget.classList.remove('drag-over'); };
+        const removeFile = () => { setResumeFile(null); const el = document.getElementById('resume-upload'); if (el) el.value=''; };
+
+        const charCount = resumeText.length;
+        const isValid = charCount >= 100 || resumeFile;
+        const showCount = !resumeFile;
+
+        return (
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <h2 id="resume-label" className="text-sm font-semibold text-gray-800">Resume</h2>
+              {showCount ? (
+                <span className={`text-xs font-medium ${isValid ? 'text-green-600' : charCount > 0 ? 'text-amber-600' : 'text-gray-500'}`}>{charCount}/100 {isValid && '✓'}</span>
+              ) : (
+                <span className="text-xs font-medium text-green-600">PDF uploaded ✓</span>
+              )}
+            </div>
+            <textarea
+              aria-labelledby="resume-label"
+              className={`w-full h-32 p-3 border rounded-lg focus:ring-2 focus:ring-black focus:border-black transition ${resumeFile ? 'border-gray-300 opacity-75' : (charCount > 0 && !isValid ? 'border-amber-300' : 'border-gray-300')}`}
+              placeholder={resumeFile ? 'Optional: Add extra context (PDF is primary)...' : 'Paste your resume text here (or upload a PDF)...'}
+              value={resumeText}
+              onChange={(e) => setResumeText(e.target.value)}
+            ></textarea>
+
+            <div
+              className={`flex flex-col items-center justify-center w-full p-5 border-2 border-dashed rounded-lg transition-colors ${resumeFile ? 'border-green-300 bg-green-50' : 'border-gray-300 hover:bg-gray-50 cursor-pointer'}`}
+              onClick={!resumeFile ? () => document.getElementById('resume-upload').click() : undefined}
+              onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave}
+            >
+              <div className="flex flex-col items-center justify-center text-center">
+                {resumeFile ? (
+                  <>
+                    <i className="ph ph-check-circle text-3xl text-green-600 mb-2" aria-hidden></i>
+                    <p className="text-sm font-medium text-green-700">{resumeFile.name}</p>
+                    <p className="text-xs text-gray-500 mb-2">{(resumeFile.size/1024/1024).toFixed(2)} MB</p>
+                    <div className="flex gap-2">
+                      <button onClick={(e)=>{e.stopPropagation(); document.getElementById('resume-upload').click();}} className="px-3 py-1.5 text-xs bg-black text-white rounded-md hover:bg-gray-900">Replace</button>
+                      <button onClick={(e)=>{e.stopPropagation(); removeFile();}} className="px-3 py-1.5 text-xs bg-gray-500 text-white rounded-md hover:bg-gray-600">Remove</button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <i className="ph ph-file-pdf text-3xl text-gray-400 mb-2" aria-hidden></i>
+                    <p className="text-sm text-gray-600"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                    <p className="text-xs text-gray-500">PDF only (max 10MB)</p>
+                  </>
+                )}
+              </div>
+              <input id="resume-upload" type="file" className="hidden" accept=".pdf" aria-label="Upload resume PDF" onChange={handleFileChange} />
+            </div>
+          </div>
+        );
+      };
+
+      const FiltersPanel = ({ filters, setFilters }) => {
+        const set = (key, value) => setFilters(prev => ({ ...prev, [key]: value }));
+        return (
+          <div className="space-y-4" aria-label="Filters">
+            <div>
+              <label className="text-xs font-medium text-gray-600">Role</label>
+              <select className="mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-black focus:border-black" value={filters.role} onChange={(e)=>set('role', e.target.value)}>
+                <option value="">Any</option>
+                <option>Frontend Developer</option>
+                <option>Backend Engineer</option>
+                <option>Full‑stack Engineer</option>
+                <option>Product Designer</option>
+                <option>Data Analyst</option>
+                <option>Marketing Manager</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600">Location</label>
+              <select className="mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-black focus:border-black" value={filters.location} onChange={(e)=>set('location', e.target.value)}>
+                <option value="">Any</option>
+                <option>Remote</option>
+                <option>Onsite</option>
+                <option>Hybrid</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <input id="f-remote" type="checkbox" className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black" checked={filters.remoteOnly} onChange={(e)=>set('remoteOnly', e.target.checked)} />
+              <label htmlFor="f-remote" className="text-sm text-gray-700">Remote only</label>
+            </div>
+            <div>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-gray-600">Min compatibility</label>
+                <span className="text-xs text-gray-500">{filters.minCompat}%</span>
+              </div>
+              <input type="range" min="0" max="100" step="5" value={filters.minCompat} onChange={(e)=>set('minCompat', parseInt(e.target.value))} className="w-full" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600">Tags</label>
+              <input type="text" placeholder="e.g. React, SaaS, Fintech" className="mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-black focus:border-black" value={filters.tags} onChange={(e)=>set('tags', e.target.value)} />
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button className="flex-1 px-3 py-1.5 text-sm rounded-lg border border-gray-300 bg-white hover:bg-gray-50" onClick={()=>setFilters({ role:'', location:'', remoteOnly:false, minCompat:0, tags:'' })}>Clear</button>
+            </div>
+          </div>
+        );
+      };
+
+      const ResultsHeader = ({ query, setQuery, sortBy, setSortBy, total, selectedCount, allSelected, onToggleSelectAll, onOpenFiltersMobile }) => (
+        <div className="flex items-center gap-3 flex-wrap justify-between">
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <i className="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+              <input
+                aria-label="Search jobs"
+                value={query}
+                onChange={(e)=>setQuery(e.target.value)}
+                placeholder="Search by title, company, keyword"
+                className="pl-9 pr-3 py-2 w-64 border rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-black"
+              />
+            </div>
+            <div className="hidden sm:flex items-center gap-2 text-xs text-gray-500">
+              <span>{total} results</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="sm:hidden inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg border border-gray-300 bg-white hover:bg-gray-50" onClick={onOpenFiltersMobile}><i className="ph ph-funnel"></i>Filters</button>
+            <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white p-1 shadow-subtle">
+              <button onClick={()=>setSortBy('Relevance')} className={`px-3 py-1.5 text-xs font-medium rounded-full ${sortBy==='Relevance'?'bg-black text-white':'text-gray-700 hover:bg-gray-50'}`}>Relevance</button>
+              <button onClick={()=>setSortBy('Compatibility')} className={`px-3 py-1.5 text-xs font-medium rounded-full ${sortBy==='Compatibility'?'bg-black text-white':'text-gray-700 hover:bg-gray-50'}`}>Compatibility</button>
+              <button onClick={()=>setSortBy('Recent')} className={`px-3 py-1.5 text-xs font-medium rounded-full ${sortBy==='Recent'?'bg-black text-white':'text-gray-700 hover:bg-gray-50'}`}>Recent</button>
+            </div>
+            <div className="hidden md:flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm text-gray-700 select-none">
+                <input type="checkbox" aria-label="Select all results" className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black" checked={allSelected} onChange={onToggleSelectAll} />
+                Select all
+              </label>
+              <div aria-live="polite" className="text-xs text-gray-500">{selectedCount} selected</div>
+            </div>
+          </div>
+        </div>
+      );
+
+      // Global toolbar for dashboard (search, sort, select all, bulk actions)
+      const GlobalToolbar = ({ query, setQuery, sortBy, setSortBy, total, selectedCount, allSelected, onToggleSelectAll, onOpenFiltersMobile, onScan }) => (
+        <div className="px-4 py-2 border-b border-gray-200 bg-white">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-3 flex-1 min-w-[260px]">
+              <div className="relative w-full max-w-[420px]">
+                <i className="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input aria-label="Search jobs" value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="Search by title, company, keyword" className="pl-9 pr-3 py-2 w-full border rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-black" />
+              </div>
+              <div className="hidden sm:flex items-center gap-2 text-xs text-gray-500">
+                <span>{total} results</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white p-1 shadow-subtle">
+                <button onClick={()=>setSortBy('Relevance')} className={`px-3 py-1.5 text-xs font-medium rounded-full ${sortBy==='Relevance'?'bg-black text-white':'text-gray-700 hover:bg-gray-50'}`}>Relevance</button>
+                <button onClick={()=>setSortBy('Compatibility')} className={`px-3 py-1.5 text-xs font-medium rounded-full ${sortBy==='Compatibility'?'bg-black text-white':'text-gray-700 hover:bg-gray-50'}`}>Compatibility</button>
+                <button onClick={()=>setSortBy('Recent')} className={`px-3 py-1.5 text-xs font-medium rounded-full ${sortBy==='Recent'?'bg-black text-white':'text-gray-700 hover:bg-gray-50'}`}>Recent</button>
+              </div>
+              <button className="sm:hidden inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg border border-gray-300 bg-white hover:bg-gray-50" onClick={onOpenFiltersMobile}><i className="ph ph-funnel"></i>Filters</button>
+            </div>
+            <div className="hidden md:flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm text-gray-700 select-none">
+                <input type="checkbox" aria-label="Select all results" className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black" checked={allSelected} onChange={onToggleSelectAll} />
+                Select all
+              </label>
+              <div aria-live="polite" className="text-xs text-gray-500">{selectedCount} selected</div>
+              <div className="ml-2 flex items-center gap-2">
+                <button className="rounded-md border border-gray-300 bg-white px-2.5 py-1 text-sm text-gray-700 hover:bg-gray-100">Save</button>
+                <button className="rounded-md border border-gray-300 bg-white px-2.5 py-1 text-sm text-gray-700 hover:bg-gray-100">Export</button>
+                <button className="rounded-md bg-black px-2.5 py-1 text-sm text-white hover:bg-gray-900">Generate messages</button>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={onScan} className="inline-flex items-center gap-2 rounded-lg bg-black px-3 py-2 text-sm font-semibold text-white shadow-subtle hover:bg-gray-900"><i className="ph ph-magnifying-glass"></i>Scan Jobs</button>
+            </div>
+          </div>
+        </div>
+      );
+
+      const SkeletonRow = () => (
+        <tr>
+          <td className="px-3 py-3"><div className="h-4 w-4 rounded shimmer"></div></td>
+          <td className="px-3 py-3"><div className="h-4 w-44 rounded shimmer"></div></td>
+          <td className="px-3 py-3 hidden xl:table-cell"><div className="h-4 w-36 rounded shimmer"></div></td>
+          <td className="px-3 py-3 hidden lg:table-cell"><div className="h-4 w-52 rounded shimmer"></div></td>
+          <td className="px-3 py-3"><div className="h-4 w-16 rounded shimmer"></div></td>
+          <td className="px-3 py-3"><div className="h-5 w-20 rounded-full shimmer"></div></td>
+        </tr>
+      );
+
+      const ResultsTable = ({ jobs, selectedIds, setSelectedIds, activeId, setActiveId, allSelected, onToggleSelectAll }) => {
+        // Column widths (px). Undefined -> auto
+        const [colWidths, setColWidths] = React.useState({ select: 44, job: undefined, company: 220, notes: 260, compat: 120, success: 120 });
+        const headerRefs = {
+          job: React.useRef(null),
+          company: React.useRef(null),
+          notes: React.useRef(null),
+          compat: React.useRef(null),
+          success: React.useRef(null),
+        };
+        const minWidthFor = { job: 200, company: 160, notes: 200, compat: 100, success: 100 };
+        const startData = React.useRef({ key: '', startX: 0, startW: 0 });
+        const startResize = (key, e) => {
+          e.preventDefault();
+          const el = headerRefs[key]?.current;
+          const currentWidth = colWidths[key] ?? (el ? el.getBoundingClientRect().width : 180);
+          startData.current = { key, startX: e.clientX, startW: currentWidth };
+          const onMove = (me) => {
+            const dx = me.clientX - startData.current.startX;
+            const target = Math.max(minWidthFor[key], startData.current.startW + dx);
+            setColWidths((w) => ({ ...w, [key]: target }));
+          };
+          const onUp = () => {
+            window.removeEventListener('mousemove', onMove);
+            window.removeEventListener('mouseup', onUp);
+          };
+          window.addEventListener('mousemove', onMove);
+          window.addEventListener('mouseup', onUp);
+        };
+        const toggle = (id, checked) => {
+          setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (checked) next.add(id); else next.delete(id);
+            return next;
+          });
+        };
+        return (
+          <div className="overflow-auto">
+            <table className="min-w-full text-sm table-fixed">
+              <colgroup>
+                <col style={{ width: `${colWidths.select}px` }} />
+                <col style={{ width: colWidths.job ? `${colWidths.job}px` : 'auto' }} />
+                <col style={{ width: colWidths.company ? `${colWidths.company}px` : 'auto' }} />
+                <col style={{ width: colWidths.notes ? `${colWidths.notes}px` : 'auto' }} />
+                <col style={{ width: `${colWidths.compat}px` }} />
+                <col style={{ width: `${colWidths.success}px` }} />
+              </colgroup>
+              <thead className="text-gray-600 text-xs uppercase sticky top-0 z-10 bg-white/95 backdrop-blur supports-backdrop-blur:bg-white/80 border-b border-gray-200">
+                <tr>
+                  <th className="text-left px-4 py-2 font-medium w-10"> 
+                    <input type="checkbox" aria-label="Select all results" className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black" checked={allSelected} onChange={onToggleSelectAll} />
+                  </th>
+                  <th ref={headerRefs.job} className="relative text-left px-4 py-2 font-medium select-none">
+                    Job
+                    <div className="absolute top-0 right-0 h-full w-1.5 cursor-col-resize" onMouseDown={(e)=>startResize('job', e)} title="Resize column"></div>
+                  </th>
+                  <th ref={headerRefs.company} className="relative text-left px-4 py-2 font-medium hidden xl:table-cell select-none">
+                    Company
+                    <div className="absolute top-0 right-0 h-full w-1.5 cursor-col-resize" onMouseDown={(e)=>startResize('company', e)} title="Resize column"></div>
+                  </th>
+                  <th ref={headerRefs.notes} className="relative text-left px-4 py-2 font-medium hidden lg:table-cell select-none">
+                    AI notes
+                    <div className="absolute top-0 right-0 h-full w-1.5 cursor-col-resize" onMouseDown={(e)=>startResize('notes', e)} title="Resize column"></div>
+                  </th>
+                  <th ref={headerRefs.compat} className="relative text-left px-4 py-2 font-medium select-none">
+                    Compat
+                    <div className="absolute top-0 right-0 h-full w-1.5 cursor-col-resize" onMouseDown={(e)=>startResize('compat', e)} title="Resize column"></div>
+                  </th>
+                  <th ref={headerRefs.success} className="relative text-left px-4 py-2 font-medium select-none">
+                    Success
+                    <div className="absolute top-0 right-0 h-full w-1.5 cursor-col-resize" onMouseDown={(e)=>startResize('success', e)} title="Resize column"></div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {jobs.map(job => {
+                  const isActive = activeId === job.id;
+                  const isChecked = selectedIds.has(job.id);
+                  const level = job.success || successLevelFor(job.compatibility);
+                  return (
+                    <tr key={job.id} className={`odd:bg-white even:bg-gray-25 ${isActive ? 'bg-gray-50' : ''} hover:bg-gray-50 cursor-pointer`} onClick={() => setActiveId(job.id)}>
+                      <td className="px-4 py-3 align-top" onClick={(e)=>e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          aria-label={`Select ${job.title} at ${job.company}`}
+                          className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
+                          checked={isChecked}
+                          onChange={(e)=>toggle(job.id, e.target.checked)}
+                        />
+                      </td>
+                      <td className="px-4 py-3 align-top">
+                        <div className="flex items-start gap-3 min-w-0">
+                          <div className="h-9 w-9 shrink-0 rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center text-xs font-semibold text-gray-600">{initialsFor(job.company)}</div>
+                          <div className="min-w-0">
+                            <div className="font-semibold text-gray-900 truncate">{job.title}</div>
+                            <div className="text-xs text-gray-500 flex items-center gap-2 truncate">
+                              <span className="truncate">{job.company}</span>
+                              <span className="shrink-0">•</span>
+                              <span className="truncate">{job.location}</span>
+                              {job.remote && (<span className="inline-flex items-center gap-1 rounded-full bg-green-50 text-green-700 border border-green-200 px-1.5 py-0.5 shrink-0">Remote</span>)}
+                            </div>
+                            <div className="text-[13px] text-gray-700 line-clamp-1 mt-1">{job.shortDescription}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 hidden xl:table-cell align-top">
+                        <div className="text-gray-700 line-clamp-2">{job.company}</div>
+                      </td>
+                      <td className="px-4 py-3 hidden lg:table-cell align-top">
+                        <ul className="text-gray-600 list-disc list-inside space-y-0.5">
+                          {job.notes.slice(0,2).map((n,i)=>(<li key={i} className="text-xs">{n}</li>))}
+                        </ul>
+                      </td>
+                      <td className="px-4 py-3 align-top">
+                        <div className="w-24">
+                          <div className="flex items-center justify-between text-xs text-gray-600">
+                            <span>{job.compatibility}%</span>
+                          </div>
+                          <div className="mt-1 h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                            <div className={`h-full ${progressClass(job.compatibility)}`} style={{width: `${job.compatibility}%`}}></div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 align-top">
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full border text-xs font-medium ${levelClass(level)}`}>
+                          <span className={`h-1.5 w-1.5 rounded-full bg-${levelColor(level)}-600`}></span>{level}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        );
+      };
+
+      const DetailsPanel = ({ job, message, onRegenerate, onCopy }) => {
+        if (!job) {
+          return (
+            <div className="h-full flex items-center justify-center text-center text-gray-500">
+              <div>
+                <i className="ph ph-binoculars text-4xl text-gray-400 mb-2"></i>
+                <p className="font-medium text-gray-700">Select a job to view details</p>
+                <p className="text-sm">Company insights, AI notes, and tailored message will appear here.</p>
+              </div>
+            </div>
+          );
+        }
+        const level = job.success || successLevelFor(job.compatibility);
+        return (
+          <div className="flex flex-col h-full">
+            <div className="border border-gray-200 rounded-xl overflow-hidden bg-white h-full flex flex-col">
+              <div className="p-4 border-b border-gray-200 flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600">{initialsFor(job.company)}</div>
+                <div className="min-w-0">
+                  <div className="font-semibold text-gray-900 truncate">{job.company}</div>
+                  <div className="text-xs text-gray-500 truncate">{job.industry} • {job.size} • {job.location}</div>
+                </div>
+              </div>
+              <div className="p-4 grid grid-cols-2 gap-3 border-b border-gray-200">
+                <div className="flex flex-col items-center justify-center">
+                  <Gauge score={job.compatibility} />
+                  <div className="text-xs text-gray-600 mt-1">Compatibility</div>
+                </div>
+                <div className="flex flex-col items-center justify-center">
+                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full border text-xs font-medium ${levelClass(level)}`}>
+                    <span className={`h-1.5 w-1.5 rounded-full bg-${levelColor(level)}-600`}></span>{level}
+                  </span>
+                  <div className="text-xs text-gray-600 mt-1">Chance of success</div>
+                </div>
+              </div>
+              <div className="p-4 border-b border-gray-200">
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">{job.title}</h4>
+                <div className="text-xs text-gray-500 mb-2">Posted {job.posted}</div>
+                <div className="h-24 overflow-auto text-sm leading-relaxed text-gray-700">
+                  {job.description}
+                </div>
+              </div>
+              <div className="p-4 border-b border-gray-200">
+                <h5 className="text-sm font-semibold text-gray-800 mb-2">AI Notes</h5>
+                <ul className="text-sm text-gray-700 space-y-1">
+                  {job.notes.map((n,i)=>(<li key={i} className="flex items-start gap-2"><i className="ph ph-check-circle text-green-600 mt-0.5"></i><span>{n}</span></li>))}
+                </ul>
+              </div>
+              <div className="flex-1 min-h-0 grid grid-rows-[auto_1fr]">
+                <div className="p-3 border-b border-gray-200 flex items-center justify-between">
+                  <h4 className="font-semibold text-gray-800 text-sm">Tailored Message</h4>
+                  <div className="flex items-center gap-2">
+                    <button onClick={onRegenerate} className="text-xs rounded-md border border-gray-300 bg-white px-2.5 py-1 text-gray-700 hover:bg-gray-50"><i className="ph ph-magic-wand"></i> Regenerate</button>
+                    <button onClick={onCopy} className="text-xs rounded-md bg-black px-2.5 py-1 text-white hover:bg-gray-900"><i className="ph ph-clipboard-text"></i> Copy</button>
+                  </div>
+                </div>
+                <div className="p-4 overflow-auto">
+                  <pre className="text-sm whitespace-pre-wrap leading-relaxed text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-3">{message}</pre>
+                </div>
+              </div>
+              <div className="p-3 border-t border-gray-200 flex items-center gap-2">
+                <button className="flex-1 rounded-lg bg-black px-3 py-2 text-sm font-semibold text-white hover:bg-gray-900">Apply</button>
+                <button className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Save</button>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      // Sample jobs dataset (mock)
+      const SAMPLE_JOBS = [
+        {
+          id: '1',
+          title: 'Frontend Developer',
+          company: 'Acme Corp',
+          location: 'Remote (US)',
+          remote: true,
+          industry: 'SaaS',
+          size: '200–500',
+          posted: '2 days ago',
+          compatibility: 86,
+          success: 'High',
+          shortDescription: 'Build and ship product features in React, TypeScript, and Tailwind. Collaborate closely with design and backend.',
+          description: 'We are seeking a Frontend Developer to deliver polished UI in React and TypeScript. You will partner with designers, build accessible components, optimize performance, and contribute to DX tooling. Experience with modern bundlers and testing is a plus.',
+          notes: ['Strong React + TS alignment', 'Tailwind and accessibility focus', 'Clear stakeholder collaboration'],
+          role: 'Frontend Developer',
+          mode: 'Remote',
+          tags: ['React','TypeScript','Tailwind','Accessibility']
+        },
+        {
+          id: '2',
+          title: 'Backend Engineer',
+          company: 'Northwind',
+          location: 'Seattle, WA',
+          remote: false,
+          industry: 'E‑commerce',
+          size: '500–1k',
+          posted: '5 days ago',
+          compatibility: 73,
+          success: 'Medium',
+          shortDescription: 'Design and scale services in Node.js and PostgreSQL. Focus on reliability and observability.',
+          description: 'Join our backend team to design resilient services, implement APIs, and improve our data pipeline. We value observability, code quality, and pragmatic delivery. Experience with cloud infra and queues is beneficial.',
+          notes: ['Node + SQL experience maps well', 'Observability and testing mindset', 'Potential gap: high‑scale systems'],
+          role: 'Backend Engineer',
+          mode: 'Onsite',
+          tags: ['Node','PostgreSQL','AWS','Observability']
+        },
+        {
+          id: '3',
+          title: 'Full‑stack Engineer',
+          company: 'Globex',
+          location: 'Austin, TX (Hybrid)',
+          remote: false,
+          industry: 'Fintech',
+          size: '50–200',
+          posted: '1 day ago',
+          compatibility: 81,
+          success: 'High',
+          shortDescription: 'Own end‑to‑end features across React and Node. Work closely with product to iterate quickly.',
+          description: 'You will build across the stack, from React UIs to Node APIs. We ship fast and value product sense, code quality, and ownership. Comfort with SQL and cloud is required.',
+          notes: ['End‑to‑end feature ownership', 'Product sense aligns with experience', 'Strong match on React + Node'],
+          role: 'Full‑stack Engineer',
+          mode: 'Hybrid',
+          tags: ['React','Node','SQL','Cloud']
+        },
+        {
+          id: '4',
+          title: 'Product Designer',
+          company: 'Initech',
+          location: 'Remote (EU)',
+          remote: true,
+          industry: 'B2B',
+          size: '200–500',
+          posted: '3 days ago',
+          compatibility: 67,
+          success: 'Medium',
+          shortDescription: 'Design end‑to‑end product experiences. Collaborate with PM/Eng, deliver flows, wireframes, and polished UI.',
+          description: 'We are looking for a Product Designer who can take problems from 0→1. You will drive discovery, run critiques, and deliver delightful interfaces. Experience with design systems and hand‑off is important.',
+          notes: ['Portfolio shows complex flows', 'Design systems experience', 'Opportunity: research depth'],
+          role: 'Product Designer',
+          mode: 'Remote',
+          tags: ['Figma','Design Systems','User Research']
+        },
+        {
+          id: '5',
+          title: 'Data Analyst',
+          company: 'Umbrella Labs',
+          location: 'Boston, MA',
+          remote: false,
+          industry: 'Healthtech',
+          size: '1k+',
+          posted: '1 week ago',
+          compatibility: 58,
+          success: 'Low',
+          shortDescription: 'Analyze product metrics, build dashboards, and partner with stakeholders on insights.',
+          description: 'Work with product and engineering to define metrics, design experiments, and communicate findings. SQL, BI tools, and communication skills are key.',
+          notes: ['Good SQL background', 'Clear communication', 'Gap: healthcare data exposure'],
+          role: 'Data Analyst',
+          mode: 'Onsite',
+          tags: ['SQL','Tableau','AB Testing']
+        },
+        {
+          id: '6',
+          title: 'Marketing Manager',
+          company: 'Soylent',
+          location: 'Los Angeles, CA (Hybrid)',
+          remote: false,
+          industry: 'Consumer',
+          size: '200–500',
+          posted: '4 days ago',
+          compatibility: 63,
+          success: 'Medium',
+          shortDescription: 'Own multi‑channel campaigns for growth. Collaborate with content and performance teams.',
+          description: 'Plan and execute integrated marketing campaigns, manage budgets, and report on ROI. Experience across email, paid, and content required.',
+          notes: ['Cross‑functional coordination', 'Strong campaign analytics', 'Opportunity: consumer brand depth'],
+          role: 'Marketing Manager',
+          mode: 'Hybrid',
+          tags: ['Email','Paid','Content']
+        },
+        {
+          id: '7',
+          title: 'Backend Engineer',
+          company: 'Wayne Enterprises',
+          location: 'Gotham, NY',
+          remote: true,
+          industry: 'Security',
+          size: '1k+',
+          posted: 'Today',
+          compatibility: 77,
+          success: 'Medium',
+          shortDescription: 'Build secure services and APIs. Go or Node preferred. Work with threat modeling.',
+          description: 'Design and implement secure services with a focus on reliability and performance. Collaborate with infra and security teams. Experience with Go/Node, queues, and cloud required.',
+          notes: ['Security mindset', 'Strong service design', 'Gap: Go preferred but Node OK'],
+          role: 'Backend Engineer',
+          mode: 'Remote',
+          tags: ['Go','Node','Security','Cloud']
+        },
+        {
+          id: '8',
+          title: 'Frontend Developer',
+          company: 'Stark Industries',
+          location: 'San Francisco, CA',
+          remote: false,
+          industry: 'Hardware',
+          size: '10k+',
+          posted: '3 days ago',
+          compatibility: 69,
+          success: 'Medium',
+          shortDescription: 'Work on complex UI for internal tools in React. Performance and DX are key.',
+          description: 'Build internal tools used by engineering teams. Optimize for performance and maintainability. Strong React, TS, and testing required.',
+          notes: ['Complex UI experience', 'DX focus aligns', 'Opportunity: large org process'],
+          role: 'Frontend Developer',
+          mode: 'Onsite',
+          tags: ['React','TypeScript','Testing']
+        },
+        {
+          id: '9',
+          title: 'Full‑stack Engineer',
+          company: 'Pied Piper',
+          location: 'Remote (Global)',
+          remote: true,
+          industry: 'Compression',
+          size: '0–50',
+          posted: 'Yesterday',
+          compatibility: 91,
+          success: 'High',
+          shortDescription: 'Ship product across React/Node. Startup pace, ownership, and craftsmanship expected.',
+          description: 'Join a small team to build features end‑to‑end. You will write thoughtful code, improve performance, and partner with founders to prioritize work.',
+          notes: ['Startup experience', 'Craftsmanship and ownership', 'Great culture match'],
+          role: 'Full‑stack Engineer',
+          mode: 'Remote',
+          tags: ['React','Node','Startup']
+        },
+      ];
+
+      const App = () => {
+        const [resumeText, setResumeText] = useState('');
+        const [resumeFile, setResumeFile] = useState(null);
+        const [errorMessage, setErrorMessage] = useState('');
+        const [isScanning, setIsScanning] = useState(false);
+        const [jobs, setJobs] = useState([]);
+        const [query, setQuery] = useState('');
+        const [sortBy, setSortBy] = useState('Relevance');
+        const [filters, setFilters] = useState({ role: '', location: '', remoteOnly: false, minCompat: 0, tags: '' });
+        const [selectedIds, setSelectedIds] = useState(new Set());
+        const [activeId, setActiveId] = useState(null);
+        const [message, setMessage] = useState('');
+        const [showFiltersSheet, setShowFiltersSheet] = useState(false);
+        const [isInspectorOpen, setIsInspectorOpen] = useState(true);
+
+        const activeJob = useMemo(() => jobs.find(j => j.id === activeId) || null, [jobs, activeId]);
+
+        const validate = () => {
+          const hasResume = (resumeText.trim().length >= 50) || !!resumeFile;
+          if (!hasResume) return 'Add your resume (paste at least 50 chars or upload a PDF)';
+          return '';
+        };
+
+        const scanJobs = () => {
+          const err = validate();
+          if (err) { setErrorMessage(err); return; } else { setErrorMessage(''); }
+          setIsScanning(true); setJobs([]); setSelectedIds(new Set()); setActiveId(null);
+          setTimeout(() => {
+            // Simulate relevance tweak by shuffling and slight score noise
+            const noisy = SAMPLE_JOBS.map(j => ({ ...j, compatibility: clamp(j.compatibility + Math.round((Math.random()*10)-5), 40, 99) }));
+            setJobs(noisy);
+            setActiveId(noisy[0]?.id || null);
+            setIsScanning(false);
+          }, 900);
+        };
+
+        const filtered = useMemo(() => {
+          let data = [...jobs];
+          if (query.trim()) {
+            const q = query.trim().toLowerCase();
+            data = data.filter(j => `${j.title} ${j.company} ${j.shortDescription} ${j.tags.join(' ')}`.toLowerCase().includes(q));
+          }
+          if (filters.role) data = data.filter(j => j.role === filters.role);
+          if (filters.location) {
+            if (filters.location === 'Remote') data = data.filter(j => j.mode === 'Remote');
+            else if (filters.location === 'Onsite') data = data.filter(j => j.mode === 'Onsite');
+            else if (filters.location === 'Hybrid') data = data.filter(j => j.mode === 'Hybrid');
+          }
+          if (filters.remoteOnly) data = data.filter(j => j.remote);
+          if (filters.minCompat > 0) data = data.filter(j => j.compatibility >= filters.minCompat);
+          if (filters.tags.trim()) {
+            const t = filters.tags.toLowerCase().split(',').map(s=>s.trim()).filter(Boolean);
+            if (t.length) data = data.filter(j => t.every(tag => j.tags.join(' ').toLowerCase().includes(tag)));
+          }
+          if (sortBy === 'Compatibility') data.sort((a,b)=>b.compatibility - a.compatibility);
+          else if (sortBy === 'Recent') {
+            const order = ['Today','Yesterday','1 day ago','2 days ago','3 days ago','4 days ago','5 days ago','1 week ago'];
+            const rank = (p) => {
+              const i = order.indexOf(p);
+              return i === -1 ? 999 : i;
+            };
+            data.sort((a,b)=>rank(a.posted) - rank(b.posted));
+          }
+          return data;
+        }, [jobs, query, filters, sortBy]);
+
+        const allSelected = filtered.length > 0 && filtered.every(j => selectedIds.has(j.id));
+        const selectedCount = selectedIds.size;
+
+        const toggleSelectAll = () => {
+          setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (allSelected) {
+              filtered.forEach(j => next.delete(j.id));
+            } else {
+              filtered.forEach(j => next.add(j.id));
+            }
+            return next;
+          });
+        };
+
+        useEffect(() => {
+          if (!activeJob) { setMessage(''); return; }
+          const base = `Hi ${activeJob.company} team — I’m excited about the ${activeJob.title} role. My background maps well to your needs: ${activeJob.notes.slice(0,2).join('; ')}. I can start quickly and deliver measurable outcomes.\n\nWould love to share a brief plan tailored to your stack and goals.`;
+          setMessage(base);
+        }, [activeId]);
+
+        const regenerate = () => {
+          if (!activeJob) return;
+          const tones = ['Professional', 'Friendly', 'Technical', 'Concise', 'Impact‑focused'];
+          const tone = tones[Math.floor(Math.random()*tones.length)];
+          const msg = `${tone} draft for ${activeJob.company}:\n\nHello — I reviewed the ${activeJob.title} role. I bring hands‑on experience with ${activeJob.tags.slice(0,3).join(', ')} and have shipped similar outcomes. Given your focus on ${activeJob.industry.toLowerCase()}, I’d propose an initial milestone in week one and a clear demo by week two.\n\nHappy to tailor further.`;
+          setMessage(msg);
+        };
+
+        const copyMessage = async () => {
+          try { await navigator.clipboard.writeText(message); } catch {}
+        };
+
+        // Mobile filters sheet simple overlay
+        const FiltersSheet = () => (
+          <div className={`fixed inset-0 z-50 ${showFiltersSheet ? '' : 'pointer-events-none'}`} aria-hidden={!showFiltersSheet}>
+            <div className={`absolute inset-0 bg-black/30 transition-opacity ${showFiltersSheet ? 'opacity-100' : 'opacity-0'}`} onClick={()=>setShowFiltersSheet(false)}></div>
+            <div className={`absolute right-0 top-0 h-full w-[320px] bg-white shadow-xl border-l border-gray-200 p-4 transition-transform ${showFiltersSheet ? 'translate-x-0' : 'translate-x-full'}`}>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-gray-800">Filters</h3>
+                <button className="p-1 rounded-md hover:bg-gray-100" onClick={()=>setShowFiltersSheet(false)} aria-label="Close filters"><i className="ph ph-x"></i></button>
+              </div>
+              <FiltersPanel filters={filters} setFilters={setFilters} />
+            </div>
+          </div>
+        );
+
+        return (
+          <div className="min-h-screen pb-10">
+            <AppHeader />
+            <SectionTitle />
+            <Container>
+              {/* Dashboard Card */}
+              <div className="rounded-xl border border-gray-200 shadow bg-white overflow-hidden">
+                {/* Dashboard Header */}
+                <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img src="/logo192.png" alt="Online Jobs AI" className="h-7 w-7 rounded-lg shadow-subtle" />
+                    <div className="min-w-0">
+                      <h2 className="text-sm sm:text-base font-semibold text-gray-900 truncate">Job Finder Dashboard</h2>
+                      <p className="text-xs text-gray-500 truncate">Upload resume, scan matches, shortlist and generate outreach</p>
+                    </div>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-2">
+                    <button className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-700 hover:bg-gray-100" onClick={()=>setIsInspectorOpen(v=>!v)} title="Toggle right panel"><i className="ph ph-sidebar"></i> Toggle Inspector</button>
+                    <button className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-700 hover:bg-gray-100"><i className="ph ph-question"></i> Help</button>
+                    <button className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-700 hover:bg-gray-100"><i className="ph ph-gear"></i> Settings</button>
+                  </div>
+                </div>
+
+                {/* Global Toolbar */}
+                <GlobalToolbar
+                  query={query}
+                  setQuery={setQuery}
+                  sortBy={sortBy}
+                  setSortBy={setSortBy}
+                  total={filtered.length}
+                  selectedCount={selectedCount}
+                  allSelected={allSelected}
+                  onToggleSelectAll={toggleSelectAll}
+                  onOpenFiltersMobile={()=>setShowFiltersSheet(true)}
+                  onScan={scanJobs}
+                />
+
+                {/* Content Grid */}
+                <main className={`grid grid-cols-1 ${isInspectorOpen ? 'lg:grid-cols-[1fr_2fr_1fr]' : 'lg:grid-cols-[1fr_3fr]'} gap-4 p-4`}>
+                  {/* Left: Resume + Filters */}
+                  <aside className="space-y-4 lg:sticky lg:top-[5.75rem] lg:self-start min-w-0">
+                  {errorMessage && (
+                    <div className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-amber-800 text-sm flex items-center gap-2"><i className="ph ph-warning"></i><span>{errorMessage}</span></div>
+                  )}
+                    <div className="rounded-xl border border-gray-200 p-4 bg-white">
+                      <ResumeUploader resumeText={resumeText} setResumeText={setResumeText} resumeFile={resumeFile} setResumeFile={setResumeFile} />
+                      <button
+                        className="mt-4 w-full bg-black text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={scanJobs} disabled={isScanning}
+                      >
+                        {isScanning ? (<><svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Scanning…</span></>) : (<><i className="ph ph-magnifying-glass text-xl"></i><span>Scan Jobs</span></>)}
+                      </button>
+                    </div>
+
+                    <div className="rounded-xl border border-gray-200 p-4 bg-white">
+                      <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2"><i className="ph ph-funnel text-base"></i>Filters</h3>
+                      <FiltersPanel filters={filters} setFilters={setFilters} />
+                    </div>
+                  </aside>
+
+                  {/* Center: Results */}
+                  <section className="bg-white p-0 rounded-xl border border-gray-200 flex flex-col min-h-[60vh] overflow-hidden min-w-0">
+                    {/* Compact header hidden since we use GlobalToolbar. Keep this space for mobile only if needed */}
+                  <div className="mt-3 flex-1 min-h-0">
+                    {isScanning ? (
+                      <div className="overflow-hidden">
+                        <table className="min-w-full text-sm">
+                          <tbody className="divide-y divide-gray-100">
+                            {Array.from({length: 8}).map((_,i)=>(<SkeletonRow key={i} />))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : filtered.length === 0 ? (
+                      <div className="h-full min-h-[14rem] flex items-center justify-center text-gray-500 text-center">
+                        <div>
+                          <i className="ph ph-list-magnifying-glass text-4xl text-gray-400 mb-2"></i>
+                          <p className="font-medium text-gray-700">No results</p>
+                          <p className="text-sm">Try adjusting filters or search terms.</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <ResultsTable jobs={filtered} selectedIds={selectedIds} setSelectedIds={setSelectedIds} activeId={activeId} setActiveId={setActiveId} />
+                    )}
+                  </div>
+
+                  </section>
+
+                  {/* Right: Inspector (toggleable) */}
+                  {isInspectorOpen && (
+                    <aside className="bg-white p-0 rounded-xl border border-gray-200 h-[calc(100vh-14rem)] lg:sticky lg:top-[5.75rem] lg:self-start min-h-[24rem] overflow-hidden min-w-0">
+                      <div className="h-full p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-xs font-medium text-gray-600">Inspector</div>
+                          <button className="text-xs rounded-md border border-gray-300 bg-white px-2 py-1 text-gray-700 hover:bg-gray-50" onClick={()=>setIsInspectorOpen(false)} title="Collapse right panel"><i className="ph ph-sidebar"></i> Hide</button>
+                        </div>
+                        <DetailsPanel job={activeJob} message={message} onRegenerate={regenerate} onCopy={copyMessage} />
+                      </div>
+                    </aside>
+                  )}
+                </main>
+              </div>
+            </Container>
+            {showFiltersSheet && <FiltersSheet />}
+          </div>
+        );
+      };
+
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<App />);
+    </script>
+  </body>
+  </html>
+
+

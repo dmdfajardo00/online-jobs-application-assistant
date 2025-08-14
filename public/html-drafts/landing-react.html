@@ -1,0 +1,850 @@
+ <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Online Jobs AI Assistant — Landing</title>
+    <meta name="description" content="Turn job posts into winning applications. AI-powered assistant that generates tailored copy, proposal docs, and profile match analysis in minutes." />
+
+    <!-- Favicon & PWA assets (works when served by CRA) -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+
+    <!-- Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Tailwind (CDN for mockup) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] },
+            colors: {
+              brand: {
+                DEFAULT: '#000000',
+                600: '#111111',
+                700: '#0a0a0a',
+              },
+              gray: {
+                25: '#fcfcfd',
+              },
+            },
+            boxShadow: {
+              subtle: '0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06)',
+            },
+          },
+          container: { center: true, padding: '1rem', screens: { lg: '1120px' } },
+        },
+      };
+    </script>
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- React + ReactDOM (UMD) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX in this standalone mockup -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      html, body { height: 100%; }
+      body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'; }
+
+      :root {
+        --shadow-subtle: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+      }
+
+      @keyframes float {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+        100% { transform: translateY(0); }
+      }
+
+      @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+      }
+
+      .shimmer {
+        background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 37%, #f3f4f6 63%);
+        background-size: 400% 100%;
+        animation: shimmer 2.25s linear infinite;
+      }
+
+      /* Marquee animations */
+      @keyframes marquee-left {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+      }
+      @keyframes marquee-right {
+        0% { transform: translateX(-50%); }
+        100% { transform: translateX(0); }
+      }
+
+      .marquee-container {
+        mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+      }
+      .marquee-track {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        animation-duration: 28s;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+        will-change: transform;
+      }
+      .marquee-left { animation-name: marquee-left; }
+      .marquee-right { animation-name: marquee-right; }
+      .group:hover .marquee-track { animation-play-state: paused; }
+    </style>
+  </head>
+  <body class="bg-white text-gray-800 antialiased">
+    <div id="root"></div>
+
+    <script type="text/babel" data-presets="env,react">
+      const { useState, useEffect, useRef } = React;
+
+      const Container = ({ children, className = '' }) => (
+        <div className={`container ${className}`}>{children}</div>
+      );
+
+      const Logo = () => (
+        <a href="/" className="flex items-center gap-2">
+          <img src="/logo192.png" alt="Online Jobs AI" className="h-7 w-7 rounded-lg shadow-subtle" />
+          <span className="font-semibold tracking-tight">Online Jobs AI</span>
+        </a>
+      );
+
+      const NavBar = () => {
+        const [open, setOpen] = useState(false);
+        const navItems = [
+          { href: '#features', label: 'Features' },
+          { href: '#how-it-works', label: 'How it works' },
+          { href: '#integrations', label: 'Integrations' },
+          { href: '#pricing', label: 'Pricing' },
+          { href: '#testimonials', label: 'Testimonials' },
+        ];
+        return (
+          <header className="sticky top-0 z-40 backdrop-blur bg-white/70 border-b border-gray-100">
+            <Container className="flex items-center justify-between py-4">
+              <Logo />
+              <nav className="hidden md:flex items-center gap-8">
+                {navItems.map((n) => (
+                  <a key={n.href} href={n.href} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">{n.label}</a>
+                ))}
+              </nav>
+              <div className="hidden md:flex items-center gap-3">
+                <a href="/" className="text-sm font-medium text-gray-700 hover:text-gray-900">Open App</a>
+                <a href="/" className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white shadow-subtle hover:bg-gray-900 transition-colors">
+                  <i className="ph ph-magic-wand text-base"></i>
+                  <span>Get Started</span>
+                </a>
+              </div>
+              <button onClick={() => setOpen(!open)} className="md:hidden rounded-md p-2 hover:bg-gray-100">
+                <i className={`ph ${open ? 'ph-x' : 'ph-list'} text-2xl`}></i>
+              </button>
+            </Container>
+            {open && (
+              <div className="md:hidden border-t border-gray-100">
+                <Container className="py-3 space-y-2">
+                  {navItems.map((n) => (
+                    <a key={n.href} href={n.href} className="block text-sm text-gray-700 py-1">{n.label}</a>
+                  ))}
+                  <div className="pt-2 flex items-center gap-2">
+                    <a href="/" className="text-sm font-medium text-gray-700">Open App</a>
+                    <a href="/" className="inline-flex items-center gap-2 rounded-lg bg-black px-3 py-1.5 text-sm font-semibold text-white">
+                      <i className="ph ph-magic-wand text-base"></i>
+                      <span>Get Started</span>
+                    </a>
+                  </div>
+                </Container>
+              </div>
+            )}
+          </header>
+        );
+      };
+
+      // 2D vector flaticon-style inline icons
+      const StickerDoc = ({ className, style }) => (
+        <svg className={className} style={style} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="14" y="8" width="36" height="48" rx="6" fill="#fff" stroke="#111" strokeWidth="2.5"/>
+          <path d="M22 20h20M22 28h20M22 36h14" stroke="#111" strokeWidth="2.5" strokeLinecap="round"/>
+          <rect x="14" y="8" width="36" height="48" rx="6" fill="none"/>
+        </svg>
+      );
+
+      const StickerGauge = ({ className, style }) => (
+        <svg className={className} style={style} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10 42a22 22 0 0144 0" stroke="#111" strokeWidth="2.5" strokeLinecap="round"/>
+          <path d="M32 20v12" stroke="#111" strokeWidth="2.5" strokeLinecap="round"/>
+          <circle cx="32" cy="42" r="3" fill="#111"/>
+        </svg>
+      );
+
+      const StickerWand = ({ className, style }) => (
+        <svg className={className} style={style} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 50l22-22" stroke="#111" strokeWidth="2.5" strokeLinecap="round"/>
+          <path d="M44 12l2 4 4 2-4 2-2 4-2-4-4-2 4-2 2-4z" fill="#111"/>
+        </svg>
+      );
+
+      const PersonaSelector = ({ persona, setPersona }) => {
+        const items = [
+          { id: 'developer', label: 'Developer', icon: 'code', ring: 'ring-indigo-500/20', bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' },
+          { id: 'designer', label: 'Designer', icon: 'pen', ring: 'ring-pink-500/20', bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200' },
+          { id: 'marketer', label: 'Marketer', icon: 'megaphone', ring: 'ring-emerald-500/20', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+        ];
+        const iconFor = (id) => {
+          if (id === 'developer') return <i className="ph ph-code"></i>;
+          if (id === 'designer') return <i className="ph ph-pen-nib"></i>;
+          return <i className="ph ph-megaphone"></i>;
+        };
+        return (
+          <div className="mt-5 flex items-center gap-2">
+            {items.map((it) => {
+              const active = persona === it.id;
+              return (
+                <button
+                  key={it.id}
+                  onClick={() => setPersona(it.id)}
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${active ? `bg-black text-white border-black` : `${it.bg} ${it.text} ${it.border} hover:ring ${it.ring}`}`}
+                >
+                  {iconFor(it.id)} {it.label}
+                </button>
+              );
+            })}
+          </div>
+        );
+      };
+
+      const PreviewTabs = ({ tab, setTab }) => {
+        const tabs = [
+          { id: 'copy', label: 'Application Copy' },
+          { id: 'doc', label: 'Proposal Doc' },
+          { id: 'analysis', label: 'Match Analysis' },
+        ];
+        return (
+          <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white p-1 shadow-subtle">
+            {tabs.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full transition ${tab === t.id ? 'bg-black text-white' : 'text-gray-700 hover:bg-gray-50'}`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        );
+      };
+
+      const OutputPreview = ({ tab }) => {
+        if (tab === 'doc') {
+          return (
+            <div className="rounded-xl border border-gray-200 p-4">
+              <div className="mb-3 flex items-center justify-between text-sm text-gray-600">
+                <span>Proposal Document</span>
+                <span className="text-gray-400">Google Docs</span>
+              </div>
+              <div className="space-y-2">
+                <div className="h-2.5 w-10/12 rounded bg-gray-300"></div>
+                <div className="h-2.5 w-11/12 rounded bg-gray-200"></div>
+                <div className="h-2.5 w-9/12 rounded bg-gray-200"></div>
+                <div className="h-2.5 w-8/12 rounded bg-gray-200"></div>
+                <div className="h-2.5 w-7/12 rounded bg-gray-200"></div>
+              </div>
+              <div className="mt-4 inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700"><i className="ph ph-arrow-square-out"></i>Open Doc</div>
+            </div>
+          );
+        }
+        if (tab === 'analysis') {
+          return (
+            <div className="rounded-xl border border-gray-200 p-4">
+              <div className="mb-3 flex items-center justify-between text-sm text-gray-600">
+                <span>Match Analysis</span>
+                <span className="text-gray-400">Score</span>
+              </div>
+              <div className="flex items-center justify-center py-2">
+                <div className="relative w-40 h-20">
+                  <svg className="w-full h-full" viewBox="0 0 100 50">
+                    <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#e5e7eb" strokeWidth="10" strokeLinecap="round"></path>
+                    <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#111111" strokeWidth="10" strokeLinecap="round" style={{ strokeDasharray: '125.6', strokeDashoffset: '18' }}></path>
+                  </svg>
+                  <div className="absolute bottom-0 inset-x-0 text-center">
+                    <span className="text-2xl font-bold">86</span><span className="text-gray-500">%</span>
+                  </div>
+                </div>
+              </div>
+              <ul className="mt-2 space-y-2 text-xs text-gray-600">
+                <li className="flex items-center gap-2"><i className="ph ph-check-circle text-green-600"></i>Strong skills alignment</li>
+                <li className="flex items-center gap-2"><i className="ph ph-check-circle text-green-600"></i>Relevant project history</li>
+                <li className="flex items-center gap-2"><i className="ph ph-check-circle text-green-600"></i>Clear deliverables</li>
+              </ul>
+            </div>
+          );
+        }
+        // default: copy
+        return (
+          <div className="rounded-xl border border-gray-200 p-4">
+            <div className="mb-3 flex items-center justify-between text-sm text-gray-600">
+              <span>Application Copy</span>
+              <span className="text-gray-400">Preview</span>
+            </div>
+            <div className="space-y-2">
+              <div className="h-2.5 w-9/12 rounded bg-gray-300"></div>
+              <div className="h-2.5 w-11/12 rounded bg-gray-200"></div>
+              <div className="h-2.5 w-10/12 rounded bg-gray-200"></div>
+              <div className="h-2.5 w-7/12 rounded bg-gray-200"></div>
+              <div className="h-2.5 w-6/12 rounded bg-gray-200"></div>
+            </div>
+            <div className="mt-4 inline-flex items-center gap-2 rounded-lg bg-black px-3 py-1.5 text-xs font-semibold text-white"><i className="ph ph-clipboard-text"></i>Copy</div>
+          </div>
+        );
+      };
+
+      const Hero = () => {
+        const [persona, setPersona] = useState('developer');
+        const [tab, setTab] = useState('copy');
+        const [typed, setTyped] = useState('');
+        const [phraseIndex, setPhraseIndex] = useState(0);
+        const [charIndex, setCharIndex] = useState(0);
+        const [parallax, setParallax] = useState({ x: 0, y: 0 });
+        const cardRef = useRef(null);
+
+        const personaPhrases = {
+          developer: ['Stack-aware writing.', 'Technical tone.', 'Concise and clear.'],
+          designer: ['Visual-first language.', 'Client-friendly tone.', 'Portfolio-forward.'],
+          marketer: ['Persuasive and sharp.', 'ROI-focused.', 'CTA-driven.'],
+        };
+
+        // Typewriter effect for subline
+        useEffect(() => {
+          const phrases = personaPhrases[persona];
+          const current = phrases[phraseIndex % phrases.length];
+          let timer;
+          if (charIndex <= current.length) {
+            timer = setTimeout(() => {
+              setTyped(current.slice(0, charIndex));
+              setCharIndex((c) => c + 1);
+            }, 35);
+          } else {
+            timer = setTimeout(() => {
+              setCharIndex(0);
+              setPhraseIndex((i) => (i + 1) % phrases.length);
+            }, 900);
+          }
+          return () => clearTimeout(timer);
+        }, [persona, phraseIndex, charIndex]);
+
+        // Reset typing when persona changes
+        useEffect(() => {
+          setPhraseIndex(0);
+          setCharIndex(0);
+          setTyped('');
+        }, [persona]);
+
+        const handleMouseMove = (e) => {
+          const rect = cardRef.current?.getBoundingClientRect();
+          if (!rect) return;
+          const relX = (e.clientX - rect.left) / rect.width; // 0..1
+          const relY = (e.clientY - rect.top) / rect.height; // 0..1
+          setParallax({ x: (relX - 0.5) * 12, y: (relY - 0.5) * 12 });
+        };
+
+        const stickerStyle = (mult = 1) => ({ transform: `translate(${parallax.x * mult}px, ${parallax.y * mult}px)` });
+
+        return (
+          <section className="relative overflow-hidden">
+            <div className="absolute inset-0 -z-10">
+              <div className="absolute inset-x-0 top-[-8rem] -z-10 transform-gpu blur-3xl">
+                <div className="relative left-1/2 -z-10 aspect-[1155/678] w-[72rem] -translate-x-1/2 bg-gradient-to-tr from-gray-100 to-gray-50 opacity-80" style={{clipPath: 'polygon(74% 44%, 100% 62%, 98% 0, 55% 4%, 35% 0, 13% 45%, 35% 82%, 79% 98%, 100% 76%)'}}></div>
+              </div>
+            </div>
+            <Container className="pt-14 pb-10 lg:pt-20">
+              <div className="grid lg:grid-cols-2 gap-10 items-center">
+                {/* Left content */}
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600 shadow-subtle">
+                    <i className="ph ph-sparkle text-base text-gray-900"></i>
+                    AI that speaks the client’s language
+                  </div>
+                  <h1 className="mt-5 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+                    Turn job posts into winning applications.
+                  </h1>
+                  <p className="mt-3 text-base text-gray-600 sm:text-lg">
+                    Paste a job description and get tailored outputs in minutes. <span className="text-gray-900 font-medium">{typed}</span>
+                    <span className="inline-block w-3 h-5 align-[-2px] bg-gray-900 ml-1 animate-pulse"></span>
+                  </p>
+                  <PersonaSelector persona={persona} setPersona={setPersona} />
+                  <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                    <a href="/" className="inline-flex items-center justify-center gap-2 rounded-lg bg-black px-5 py-3 text-sm font-semibold text-white shadow-subtle hover:bg-gray-900">
+                      <i className="ph ph-rocket-launch"></i>
+                      {`Start as ${persona.charAt(0).toUpperCase() + persona.slice(1)}`}
+                    </a>
+                    <a href="#features" className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50">
+                      <i className="ph ph-eye"></i>
+                      Explore Features
+                    </a>
+                  </div>
+                  <div className="mt-6 flex items-center gap-6 text-xs text-gray-500">
+                    <div className="flex items-center gap-2"><i className="ph ph-check-circle text-green-600"></i>No sign-up required</div>
+                    <div className="flex items-center gap-2"><i className="ph ph-seal-check text-blue-600"></i>Privacy-first</div>
+                  </div>
+                </div>
+
+                {/* Right: interactive preview */}
+                <div className="relative" style={{ perspective: '1000px' }}>
+                  {/* Stickers (2D vector flaticon style) */}
+                  <div className="pointer-events-none">
+                    <div className="absolute -top-6 -left-6 animate-[float_6s_ease-in-out_infinite]" style={{ animationDelay: '0.2s' }}>
+                      <StickerDoc className="h-10 w-10" style={stickerStyle(0.4)} />
+                    </div>
+                    <div className="absolute -bottom-6 -left-4 animate-[float_7s_ease-in-out_infinite]" style={{ animationDelay: '0.6s' }}>
+                      <StickerGauge className="h-10 w-10" style={stickerStyle(0.3)} />
+                    </div>
+                    <div className="absolute -top-5 -right-5 animate-[float_5.5s_ease-in-out_infinite]" style={{ animationDelay: '0.4s' }}>
+                      <StickerWand className="h-10 w-10" style={stickerStyle(0.5)} />
+                    </div>
+                  </div>
+
+                  <div
+                    ref={cardRef}
+                    onMouseMove={handleMouseMove}
+                    className="relative rounded-2xl border border-gray-200 bg-white p-4 shadow-subtle transition-transform"
+                    style={{ transform: `translate3d(${parallax.x * 0.1}px, ${parallax.y * 0.1}px, 0) rotateX(${(-parallax.y * 0.3)}deg) rotateY(${(parallax.x * 0.3)}deg)`, willChange: 'transform', transformStyle: 'preserve-3d' }}
+                  >
+                    <div className="mb-3 flex items-center justify-between">
+                      <div className="text-sm font-medium text-gray-700">Preview</div>
+                      <PreviewTabs tab={tab} setTab={setTab} />
+                    </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <div className="rounded-xl border border-gray-200 p-4">
+                        <div className="mb-3 flex items-center justify-between text-sm text-gray-600">
+                          <span>{persona === 'designer' ? 'Client Brief' : 'Job Description'}</span>
+                          <span className="text-gray-400">Paste text ▼</span>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="h-2.5 w-11/12 rounded shimmer"></div>
+                          <div className="h-2.5 w-10/12 rounded shimmer"></div>
+                          <div className="h-2.5 w-7/12 rounded shimmer"></div>
+                          <div className="h-2.5 w-9/12 rounded shimmer"></div>
+                          <div className="h-2.5 w-8/12 rounded shimmer"></div>
+                        </div>
+                        <div className="mt-4 inline-flex items-center gap-2 rounded-lg bg-black px-3 py-1.5 text-xs font-semibold text-white"><i className="ph ph-magic-wand"></i>Generate</div>
+                      </div>
+
+                      <OutputPreview tab={tab} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Container>
+          </section>
+        );
+      };
+
+      const SectionHeader = ({ eyebrow, title, desc }) => (
+        <div className="mx-auto max-w-2xl text-center">
+          {eyebrow && (
+            <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600 shadow-subtle">
+              <i className="ph ph-dots-three-outline"></i>
+              {eyebrow}
+            </div>
+          )}
+          <h2 className="mt-4 text-2xl font-semibold tracking-tight text-gray-900 sm:text-3xl">{title}</h2>
+          {desc && <p className="mt-3 text-gray-600">{desc}</p>}
+        </div>
+      );
+
+      const Features = () => {
+        const items = [
+          { icon: 'ph-file-text', title: 'Tailored application copy', desc: 'Context-aware writing that mirrors the job’s tone and requirements.' },
+          { icon: 'ph-file-doc', title: 'One‑click proposal doc', desc: 'Share‑ready Google Doc generated instantly with the right structure.' },
+          { icon: 'ph-gauge', title: 'Profile match analysis', desc: 'See your alignment score and key strengths to highlight in your pitch.' },
+          { icon: 'ph-file-pdf', title: 'Resume support', desc: 'Upload PDFs to enrich the output with your background and skills.' },
+        ];
+        return (
+          <section id="features" className="py-16 sm:py-20 bg-gray-25">
+            <Container>
+              <SectionHeader
+                eyebrow="Why freelancers love it"
+                title="Everything you need to stand out, minus the busywork"
+                desc="Precision outputs, clean structure, and a workflow designed for speed."
+              />
+              <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {items.map((f) => (
+                  <div key={f.title} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-subtle">
+                    <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-gray-900">
+                      <i className={`ph ${f.icon} text-lg`}></i>
+                    </div>
+                    <h3 className="mt-4 font-semibold text-gray-900">{f.title}</h3>
+                    <p className="mt-2 text-sm text-gray-600">{f.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </Container>
+          </section>
+        );
+      };
+
+      const Steps = () => {
+        const steps = [
+          { title: 'Paste the job post', desc: 'Drop in the full text so we can capture every nuance and requirement.' },
+          { title: 'Add your info (or PDF)', desc: 'Provide context or upload your resume to pull relevant details.' },
+          { title: 'Generate', desc: 'Create application copy, a proposal doc, and a match analysis in seconds.' },
+          { title: 'Refine and send', desc: 'Polish the tone, copy the doc link, and hit submit with full confidence.' },
+        ];
+        return (
+          <section id="how-it-works" className="py-16 sm:py-20">
+            <Container>
+              <SectionHeader
+                eyebrow="Simple process"
+                title="From post to polished application in four steps"
+                desc="No friction. No fluff. Just a clear path to a professional submission."
+              />
+              <ol className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {steps.map((s, idx) => (
+                  <li key={s.title} className="relative rounded-2xl border border-gray-200 bg-white p-5 shadow-subtle">
+                    <div className="absolute -top-3 left-5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black text-white text-sm font-semibold shadow-subtle">{idx + 1}</div>
+                    <h3 className="mt-4 font-semibold text-gray-900">{s.title}</h3>
+                    <p className="mt-2 text-sm text-gray-600">{s.desc}</p>
+                  </li>
+                ))}
+              </ol>
+            </Container>
+          </section>
+        );
+      };
+
+      const Integrations = () => {
+        const items = ['Google Docs', 'Gmail', 'Google Drive', 'Upwork', 'Freelancer', 'Zapier / Make'];
+        return (
+          <section id="integrations" className="py-16 sm:py-20 bg-gray-25">
+            <Container>
+              <SectionHeader
+                eyebrow="Works with your tools"
+                title="Smooth handoff to where you already work"
+                desc="Export and share with one click. Keep your flow moving."
+              />
+              <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                {items.map((name) => (
+                  <div key={name} className="flex items-center justify-center rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 shadow-subtle">
+                    {name}
+                  </div>
+                ))}
+              </div>
+            </Container>
+          </section>
+        );
+      };
+
+      // Company logos carousel components
+      const CompanyLogo = ({ name, dense = false }) => (
+        <a
+          href="#"
+          aria-label={`${name} trusts Online Jobs AI`}
+          title={name}
+          className={`group/brand inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white ${dense ? 'px-3 py-2' : 'px-4 py-2.5'} shadow-subtle transition hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-black`}
+        >
+          <span className={`inline-flex items-center justify-center rounded-md bg-gray-900 text-white ${dense ? 'h-5 w-5 text-[10px]' : 'h-6 w-6 text-[11px]'} font-semibold`}>{name.slice(0,1)}</span>
+          <span className={`${dense ? 'text-xs' : 'text-sm'} font-medium text-gray-700 group-hover/brand:text-gray-900`}>{name}</span>
+        </a>
+      );
+
+      const LogoRow = ({ dense = false }) => {
+        const names = ['Stripe', 'Shopify', 'Notion', 'Linear', 'Webflow', 'HubSpot', 'Dropbox', 'Slack', 'Asana', 'Figma'];
+        return (
+          <div className="flex items-center gap-6">
+            {names.map((n) => (
+              <CompanyLogo key={`${n}-${dense ? 'd' : 'n'}`} name={n} dense={dense} />
+            ))}
+          </div>
+        );
+      };
+
+      const Testimonials = () => {
+        const quotes = [
+          {
+            name: 'Maya K.',
+            role: 'Content Strategist',
+            quote: 'I spend less time writing and more time applying. The proposal doc is pristine every time.',
+          },
+          {
+            name: 'Alex R.',
+            role: 'Automation Engineer',
+            quote: 'The match analysis tells me exactly what to emphasize. It’s like having a coach on call.',
+          },
+          {
+            name: 'Jordan P.',
+            role: 'Full‑stack Developer',
+            quote: 'My win rate went up noticeably. The tone and structure are spot on for each post.',
+          },
+        ];
+        return (
+          <section id="testimonials" className="py-16 sm:py-20">
+            <Container>
+              <SectionHeader
+                eyebrow="What users say"
+                title="Trusted by freelancers who value signal over noise"
+              />
+              <div className="mt-10 grid gap-6 md:grid-cols-3">
+                {quotes.map((q) => (
+                  <figure key={q.name} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-subtle">
+                    <div className="flex items-center gap-1 text-amber-500">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <i key={i} className="ph ph-star-fill"></i>
+                      ))}
+                    </div>
+                    <blockquote className="mt-3 text-sm text-gray-700">“{q.quote}”</blockquote>
+                    <figcaption className="mt-4 text-sm font-medium text-gray-900">{q.name} <span className="text-gray-500 font-normal">· {q.role}</span></figcaption>
+                  </figure>
+                ))}
+              </div>
+              {/* Logos carousel below testimonials */}
+              <div className="mt-14">
+                <div className="mx-auto max-w-2xl text-center">
+                  <p className="text-sm font-medium text-gray-500">Trusted by teams at</p>
+                </div>
+                <div className="mt-6 space-y-5">
+                  {/* Row 1 - leftward */}
+                  <div className="group relative">
+                    <div className="marquee-container overflow-hidden">
+                      <div className="marquee-track marquee-left">
+                        <LogoRow dense={false} />
+                        <LogoRow dense={false} />
+                      </div>
+                    </div>
+                  </div>
+                  {/* Row 2 - rightward */}
+                  <div className="group relative">
+                    <div className="marquee-container overflow-hidden">
+                      <div className="marquee-track marquee-right">
+                        <LogoRow dense={true} />
+                        <LogoRow dense={true} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Container>
+          </section>
+        );
+      };
+
+      const CTA = () => (
+        <section className="py-16 sm:py-20">
+          <Container>
+            <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-8 shadow-subtle">
+              <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-gray-100"></div>
+              <div className="relative z-10 grid items-center gap-6 lg:grid-cols-2">
+                <div>
+                  <h3 className="text-2xl font-semibold tracking-tight text-gray-900">Ready to land more jobs with less effort?</h3>
+                  <p className="mt-2 text-gray-600">Open the app and generate your first application in minutes.</p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3 lg:justify-end">
+                  <a href="/" className="inline-flex items-center justify-center gap-2 rounded-lg bg-black px-5 py-3 text-sm font-semibold text-white shadow-subtle hover:bg-gray-900">
+                    <i className="ph ph-rocket-launch"></i>
+                    Open App
+                  </a>
+                  <a href="#features" className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50">
+                    <i className="ph ph-compass"></i>
+                    See Features
+                  </a>
+                </div>
+              </div>
+            </div>
+          </Container>
+        </section>
+      );
+
+      const Pricing = () => {
+        const [billing, setBilling] = React.useState('monthly');
+        const tiers = [
+          {
+            id: 'free',
+            name: 'Free',
+            priceMonthly: 0,
+            priceYearly: 0,
+            blurb: 'Get started with AI-assisted applications',
+            cta: 'Start free',
+            features: [
+              'Generate application copy (basic)',
+              '1 proposal doc per week',
+              'Lite match analysis',
+            ],
+            badge: 'Getting jobs',
+          },
+          {
+            id: 'pro',
+            name: 'Pro',
+            priceMonthly: 20,
+            priceYearly: 16,
+            blurb: 'Serious tools for active applicants',
+            cta: 'Upgrade to Pro',
+            features: [
+              'Unlimited application copy',
+              '10 proposal docs/day + templates',
+              'Advanced match analysis + tips',
+              'Priority render speed',
+            ],
+            highlighted: true,
+            badge: 'Getting jobs',
+          },
+          {
+            id: 'enterprise',
+            name: 'Enterprise',
+            priceMonthly: 200,
+            priceYearly: 160,
+            blurb: 'Scale your hiring with AI workflows',
+            cta: 'Talk to sales',
+            features: [
+              'Hiring workspace (multi-seat)',
+              'ATS export + candidate scoring',
+              'Team templates & review queue',
+              'SLA support & onboarding',
+            ],
+            badge: 'Hiring applicants',
+          },
+        ];
+
+        const priceFor = (t) => (billing === 'monthly' ? t.priceMonthly : t.priceYearly);
+        const noteFor = billing === 'monthly' ? '/mo' : '/mo, billed yearly';
+
+        return (
+          <section id="pricing" className="py-16 sm:py-20 bg-gray-25">
+            <Container>
+              <SectionHeader
+                eyebrow="Flexible plans"
+                title="Pricing that grows with your goals"
+                desc="Pick a plan now, switch anytime. No contracts, no hassle."
+              />
+              <div className="mt-6 flex items-center justify-center">
+                <div className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white p-1 shadow-subtle">
+                  <button
+                    onClick={() => setBilling('monthly')}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-full ${billing === 'monthly' ? 'bg-black text-white' : 'text-gray-700 hover:bg-gray-50'}`}
+                  >
+                    Monthly
+                  </button>
+                  <button
+                    onClick={() => setBilling('yearly')}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-full ${billing === 'yearly' ? 'bg-black text-white' : 'text-gray-700 hover:bg-gray-50'}`}
+                  >
+                    Yearly <span className="ml-1 text-[10px] text-emerald-600">(save 20%)</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-10 grid gap-6 md:grid-cols-3">
+                {tiers.map((t) => (
+                  <div
+                    key={t.id}
+                    className={`relative rounded-2xl border ${t.highlighted ? 'border-gray-900' : 'border-gray-200'} bg-white p-6 shadow-subtle transition hover:-translate-y-0.5 hover:shadow-md`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-gray-900">{t.name}</h3>
+                      <span className={`text-xs inline-flex items-center rounded-full border px-2 py-0.5 ${t.highlighted ? 'border-gray-900 text-gray-900' : 'border-gray-300 text-gray-600'}`}>{t.badge}</span>
+                    </div>
+                    <p className="mt-2 text-sm text-gray-600">{t.blurb}</p>
+
+                    <div className="mt-4 flex items-baseline gap-1">
+                      <span className="text-3xl font-bold text-gray-900">{priceFor(t) === 0 ? 'Free' : `$${priceFor(t)}`}</span>
+                      {priceFor(t) !== 0 && <span className="text-sm text-gray-500">{noteFor}</span>}
+                    </div>
+
+                    <ul className="mt-4 space-y-2 text-sm text-gray-700">
+                      {t.features.map((f) => (
+                        <li key={f} className="flex items-center gap-2">
+                          <i className="ph ph-check-circle text-green-600"></i>
+                          <span>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="mt-6 flex items-center gap-2">
+                      <button
+                        className={`flex-1 inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition ${t.highlighted ? 'bg-black text-white hover:bg-gray-900' : 'border border-gray-300 bg-white text-gray-900 hover:bg-gray-50'}`}
+                      >
+                        {t.cta}
+                        <i className="ph ph-arrow-right"></i>
+                      </button>
+                      {t.id !== 'free' && (
+                        <button className="rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50" title="Compare tiers">Compare</button>
+                      )}
+                    </div>
+
+                    {t.highlighted && (
+                      <div className="pointer-events-none absolute -inset-px rounded-2xl ring-2 ring-gray-900/5"></div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* FAQs / footnote */}
+              <div className="mt-8 grid gap-4 md:grid-cols-3 text-xs text-gray-600">
+                <div className="rounded-xl border border-gray-200 bg-white p-4">
+                  <div className="font-medium text-gray-900">Can I switch plans later?</div>
+                  <p className="mt-1">Yes, you can upgrade or downgrade anytime. Changes take effect immediately.</p>
+                </div>
+                <div className="rounded-xl border border-gray-200 bg-white p-4">
+                  <div className="font-medium text-gray-900">Do you offer refunds?</div>
+                  <p className="mt-1">We offer a 7‑day money‑back guarantee for new subscribers.</p>
+                </div>
+                <div className="rounded-xl border border-gray-200 bg-white p-4">
+                  <div className="font-medium text-gray-900">Enterprise questions</div>
+                  <p className="mt-1">Need a tailored workflow or SSO? Our team can help design your setup.</p>
+                </div>
+              </div>
+            </Container>
+          </section>
+        );
+      };
+
+      const Footer = () => (
+        <footer className="border-t border-gray-200">
+          <Container className="py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <img src="/favicon-16.png" alt="" className="h-4 w-4" />
+              <span>Online Jobs AI Assistant</span>
+            </div>
+            <nav className="flex items-center gap-4 text-sm">
+              <a className="text-gray-600 hover:text-gray-900" href="#features">Features</a>
+              <a className="text-gray-600 hover:text-gray-900" href="#how-it-works">How it works</a>
+              <a className="text-gray-600 hover:text-gray-900" href="#integrations">Integrations</a>
+              <a className="text-gray-600 hover:text-gray-900" href="#testimonials">Testimonials</a>
+              <a className="text-gray-900 font-medium" href="/">Open App</a>
+            </nav>
+          </Container>
+        </footer>
+      );
+
+      const LandingPage = () => (
+        <div className="min-h-screen bg-white">
+          <NavBar />
+          <main>
+            <Hero />
+            <Features />
+            <Steps />
+            <Integrations />
+            <Pricing />
+            <Testimonials />
+            <CTA />
+          </main>
+          <Footer />
+        </div>
+      );
+
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<LandingPage />);
+    </script>
+  </body>
+  </html>
+
+
