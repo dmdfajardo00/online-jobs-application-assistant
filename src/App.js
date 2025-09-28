@@ -680,22 +680,30 @@ const App = () => {
                 }
             }
 
-            // Send webhook request with proper headers
-            const response = await fetch(process.env.REACT_APP_WEBHOOK_URL, {
+            // Determine API endpoint based on environment
+            const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const apiEndpoint = isLocalDev
+                ? process.env.REACT_APP_WEBHOOK_URL || '/api/generate'  // Fallback for local dev
+                : process.env.REACT_APP_API_ENDPOINT || '/api/generate'; // Production uses secure proxy
+
+            // Send request to secure API endpoint
+            const response = await fetch(apiEndpoint, {
                 method: 'POST',
                 body: formData,
                 // Important: Don't manually set Content-Type for FormData with files
                 // Browser automatically sets: multipart/form-data; boundary=----WebKitFormBoundary...
-                // Setting it manually will break the boundary parameter needed for file uploads
-                headers: {
-                    // Only set headers that don't interfere with multipart/form-data
+                headers: isLocalDev && process.env.REACT_APP_WEBHOOK_AUTH_TOKEN ? {
+                    // For local development, include auth token if available
                     'Accept': 'application/json',
                     'Authorization': `Bearer ${process.env.REACT_APP_WEBHOOK_AUTH_TOKEN}`,
+                } : {
+                    // For production, let the serverless function handle authentication
+                    'Accept': 'application/json',
                 },
             });
 
             // Log the request details for debugging
-            console.log('Webhook request sent to:', process.env.REACT_APP_WEBHOOK_URL);
+            console.log('API request sent to:', apiEndpoint);
             console.log('Request method:', 'POST');
             console.log('Content-Type will be automatically set to: multipart/form-data; boundary=...');
 
