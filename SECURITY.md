@@ -15,7 +15,7 @@ To deploy this application securely on Vercel, you must set the following enviro
 ### Required Environment Variables
 
 1. **WEBHOOK_URL**: `https://n8n-automations.dmdfajardo.pro/webhook/ai-application-assistant`
-2. **WEBHOOK_AUTH_TOKEN**: `boat-playbook-amusement-decrease-filth-renewal`
+2. **WEBHOOK_AUTH_TOKEN**: `boat-playback-amusement-decrease-filth-renewal`
 
 ### How to Set Environment Variables in Vercel
 
@@ -28,7 +28,7 @@ To deploy this application securely on Vercel, you must set the following enviro
      **Environments**: Production, Preview
 
    - **Name**: `WEBHOOK_AUTH_TOKEN`
-     **Value**: `boat-playbook-amusement-decrease-filth-renewal`
+     **Value**: `boat-playback-amusement-decrease-filth-renewal`
      **Environments**: Production, Preview
 
 5. Save the configuration
